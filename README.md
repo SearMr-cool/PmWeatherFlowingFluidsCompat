@@ -1,5 +1,5 @@
 ## What does this mod to?
-This mod makes Protomanly’s Weather Compatible with the Flowing fluids made by Traben (Rain from PmWeather affects Flowing fluids).
+This mod makes Protomanly’s Weather Compatible with the Flowing fluids Mod made by Traben (Rain from PmWeather affects Flowing fluids).
 
 It achieves this by modifying some of Flowing Fluids base mixins but the overall functionality should not be affected.
 
