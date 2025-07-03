@@ -1,25 +1,38 @@
+## What does this mod to?
+This mod makes Protomanly’s Weather Compatible with the Flowing fluids made by Traben (Rain from PmWeather affects Flowing fluids.
 
-Installation information
-=======
+It achieves this by modifying some of Flowing Fluids base mixins but the overall functionality should not be affected.
 
-This template repository can be directly cloned to get you started with a new
-mod. Simply create a new repository cloned from this one, by following the
-instructions provided by [GitHub](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template).
+  
 
-Once you have your clone, simply open the repository in the IDE of your choice. The usual recommendation for an IDE is either IntelliJ IDEA or Eclipse.
+## What has changed with Flowing Fluids?
 
-If at any point you are missing libraries in your IDE, or you've run into problems you can
-run `gradlew --refresh-dependencies` to refresh the local cache. `gradlew clean` to reset everything 
-{this does not affect your code} and then start the process again.
+This mod modifies 2 of Flowing Fluids mixins mostly just replacing vanilla rain checks with rain checks from PmWeather, however some things are affected by this mods config so some normal base functionality is disabled by default to enhance gameplay, one another thing to note is that draining chance is now a dynamic variable as if it is left static major constant lag can occur.
 
-Mapping Names:
-============
-By default, the MDK is configured to use the official mapping names from Mojang for methods and fields 
-in the Minecraft codebase. These names are covered by a specific license. All modders should be aware of this
-license. For the latest license text, refer to the mapping file itself, or the reference copy here:
-https://github.com/NeoForged/NeoForm/blob/main/Mojang.md
+  
 
-Additional Resources: 
-==========
-Community Documentation: https://docs.neoforged.net/  
-NeoForged Discord: https://discord.neoforged.net/
+## Current Issues?
+
+As of now I only know of one major issue which is the fact that when it stops raining a massive lag spike can occur for a couple seconds however there is an option to combat this issue however it will stop draining everywhere on the server anytime rain is detected so by default this is disabled as it can affect gameplay quite majorly.
+
+  
+
+## Credits
+
+Mods used:
+ - https://modrinth.com/mod/flowing-fluids
+ - https://modrinth.com/mod/protomanlys-weather
+
+Versions Used:
+ - https://modrinth.com/mod/flowing-fluids/version/6gW0qIwR
+ -  https://modrinth.com/mod/protomanlys-weather/version/0.14.16-alpha
+
+ 
+
+
+
+
+
+
+
+
