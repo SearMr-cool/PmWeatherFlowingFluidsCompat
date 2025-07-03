@@ -44,10 +44,10 @@ public class FlowingFluidsCompat {
         if (currentTick >= tickDelay) {
 
             if (tickTime <= Config.targetTps) {
-                originalVal=Math.clamp(originalVal+0.001f,0,Config.maxDrainChance);
+                originalVal=Math.clamp(originalVal+0.001f,0,(float)Config.maxDrainChance /100f);
 
             }
-            else originalVal=Math.clamp(originalVal + -0.001f,0,Config.maxDrainChance);;
+            else originalVal=Math.clamp(originalVal + -0.002f,0,(float)Config.maxDrainChance /100f);
             if (Config.isAdaptive) {
 
                 UpdateRain();
