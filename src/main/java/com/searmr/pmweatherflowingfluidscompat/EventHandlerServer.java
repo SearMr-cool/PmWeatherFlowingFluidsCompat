@@ -36,7 +36,7 @@ import java.util.*;
 import static dev.protomanly.pmweather.weather.ThermodynamicEngine.getPrecipitationType;
 
 
-@EventBusSubscriber(modid = PmWeatherFlowingFluidsCompat.MODID)
+@EventBusSubscriber(modid = PmWeatherFlowingFluidsCompat.MODID, bus=EventBusSubscriber.Bus.GAME)
 public class EventHandlerServer {
     @SubscribeEvent
 public static void ServerTick(ServerTickEvent.Post event ) {
