@@ -65,12 +65,12 @@ public class Config {
 
     static  {
 
-        max_water_amount = BUILDER.comment("The max amount of water that can be added to water during rain (This is the biggest factor when it comes to how fast flooding happens").defineInRange("maxwateramount",4,1,100);
+        max_water_amount = BUILDER.comment("The max amount of water that can be added to water during rain (This is the biggest factor when it comes to how fast flooding happens").defineInRange("maxwateramount",6,1,100);
         water_drains_rain = BUILDER.comment("Should rain be in areas that are raining? If enabled it will make flooding very difficult plus lag may occur so it is recommended to leave this off").define("waterdrainsrain",false);
         is_adaptive = BUILDER.comment("If enabled the amount of rain will dynamically adjust to try and stop overloading the users system (do note the highest this will go is still limited by the user set value").define("isadaptive",true);
         target_tps = BUILDER.comment("If adaptive is enabled each tick will aim to be this many milliseconds long").defineInRange("targettps",30,1,50);
         rain_anywhere = BUILDER.comment("By default Flowing Fluids does not allow rain to build up in oceans/rivers (and some other biomes), this setting if enabled will bypass this default behavior making flooding easier but it may cause more lag in the long run").define("rainanywhere",true);
-        max_drain_chance = BUILDER.comment("The maximum drain chance for water to be drained (This is required as some values here are changed dynamically (0-100%)").defineInRange("maxdrainchance",6,0,100);
+        max_drain_chance = BUILDER.comment("The maximum drain chance for water to be drained (This is required as some values here are changed dynamically (0-100%)").defineInRange("maxdrainchance",10,0,100);
         rain_fills_blocks = BUILDER.comment("If rain places blocks above water (This must be turned on for flooding to properly occur)").define("rainfillsblocks",true);
         draining_disabled_while_raining = BUILDER.comment("This option will completely disable draining server wide if it is raining anywhere which can solve a lag spike when it stops raining (which can impact gameplay depending on the situation hence why this is disabled by default)").define("raindisabledwhileraining",false);
 
