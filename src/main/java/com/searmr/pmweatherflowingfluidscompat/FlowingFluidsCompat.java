@@ -62,7 +62,7 @@ public class FlowingFluidsCompat {
             }   else maxRainAmount = Config.maxWaterAmount;
         currentTick=0;
         } else currentTick++;
-        if (tickTime > 50) originalVal=0f;
+        if (tickTime > 50 || isRaining && Config.drainingDisabledWhileRaining) originalVal=0f;
         if (originalVal != FlowingFluids.config.infiniteWaterBiomeDrainSurfaceChance) FlowingFluids.config.infiniteWaterBiomeDrainSurfaceChance=originalVal;
 
     }

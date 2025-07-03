@@ -5,5 +5,6 @@
 "pmweatherflowingfluidscompat.configuration.targettps" : "Target Tick Duration",
 "pmweatherflowingfluidscompat.configuration.rainanywhere" : "Rain Everywhere",
 "pmweatherflowingfluidscompat.configuration.maxdrainchance" : "Max Drain Chance",
-"pmweatherflowingfluidscompat.configuration.rainfillsblocks" : "Rain On Water Blocks"
+"pmweatherflowingfluidscompat.configuration.rainfillsblocks" : "Rain On Water Blocks",
+"pmweatherflowingfluidscompat.configuration.raindisabledwhileraining" : "Draining Disabled while Raining"
 }
