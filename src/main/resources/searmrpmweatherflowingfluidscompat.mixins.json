@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "com.searmr.pmweatherflowingfluidscompat.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "MixinWaterFluid",
+    "MixinFlowingFluid"
+  ],
+
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
