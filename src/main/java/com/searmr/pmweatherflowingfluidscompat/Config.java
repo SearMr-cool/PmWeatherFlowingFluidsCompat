@@ -42,6 +42,8 @@ public class Config {
     public static boolean drainingDisabledWhileRaining ;
     private static final ModConfigSpec.BooleanValue draining_disabled_while_raining;
     public static final ModConfigSpec thing;
+    private static final ModConfigSpec.IntValue max_puddle_radius;
+    public static int maxPaddleRadius;
 
 
 
@@ -57,6 +59,7 @@ public class Config {
             maxDrainChance = (int) max_drain_chance.get();
             rainFillsBlocks = (boolean) rain_fills_blocks.get();
             drainingDisabledWhileRaining = (boolean) draining_disabled_while_raining.get();
+            maxPaddleRadius = (Integer) max_puddle_radius.get();
         }
 
 
@@ -73,8 +76,8 @@ public class Config {
         rain_anywhere = BUILDER.comment("By default Flowing Fluids does not allow rain to build up in oceans/rivers (and some other biomes), this setting if enabled will bypass this default behavior making flooding easier but it may cause more lag in the long run").define("rainanywhere",true);
         max_drain_chance = BUILDER.comment("The maximum drain chance for water to be drained (This is required as some values here are changed dynamically (0-100%)").defineInRange("maxdrainchance",10,0,100);
         rain_fills_blocks = BUILDER.comment("If rain places blocks above water (This must be turned on for flooding to properly occur)").define("rainfillsblocks",true);
-        draining_disabled_while_raining = BUILDER.comment("This option will completely disable draining server wide if it is raining anywhere which can solve a lag spike when it stops raining (which can impact gameplay depending on the situation hence why this is disabled by default)").define("raindisabledwhileraining",false);
-
+        draining_disabled_while_raining = BUILDER.comment("This option will completely disable draining server wide if it is raining anywhere which can solve a lag spike when it stops raining (which can impact gameplay depending on the situation hence why this is disabled by default)").define("raindisabledwhileraining", false);
+        max_puddle_radius = BUILDER.comment("PLUH").defineInRange("maxpuddleradius",10,0,200);
 
 
         thing = BUILDER.build();
