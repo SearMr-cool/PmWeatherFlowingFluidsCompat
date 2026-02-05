@@ -57,7 +57,7 @@ public static void ServerTick(ServerTickEvent.Post event ) {
                 var managers = GameBusEvents.MANAGERS;
                 WeatherHandler handle = (WeatherHandler) managers.get(player.level().dimension());
                 Level level = player.level();
-             for (int i = 0; Config.realisticDownfall && i <= 7 || !Config.realisticDownfall && i <= 2; i++) {
+             for (int i = 0; Config.realisticDownfall && i <= Config.maxPaddleRadius * 16.25f || !Config.realisticDownfall && i <= 2; i++) {
                  int randX = (int)(-Config.maxPaddleRadius + (Math.random() * Config.maxPaddleRadius * 2) );
                  int randZ = (int)(-Config.maxPaddleRadius + (Math.random() * Config.maxPaddleRadius * 2) );
                  Vec3 pos = new Vec3(player.position().x + randX,200,player.position().z + randZ);
@@ -66,7 +66,7 @@ public static void ServerTick(ServerTickEvent.Post event ) {
 
 
                  float rainLevel = handle.getPrecipitation(topBlock.getCenter());
-                 boolean isRaining = rainLevel > (float)Config.minRainLevelPuddle;
+                 boolean isRaining = rainLevel > 0;
 
 
                  BlockPos blockPos = topBlock;
@@ -75,10 +75,10 @@ public static void ServerTick(ServerTickEvent.Post event ) {
                      if (Config.realisticDownfall) {
                          int rad = Config.maxPaddleRadius * 2 + 1;
                          int totalArea = rad * rad;
-                         float averageTime = (((float)totalArea / 160) / 50f);
+                         float averageTime = (((float)totalArea / (int)(Config.maxPaddleRadius * 16.25f) * 20) / 50f);
                          amount = (int)((Config.maxRainDownfall * rainLevel * averageTime)/125f);
                      }
-                     else {
+                     else if (rainLevel > (float)Config.minRainLevelPuddle){
                          Math.clamp((int)(FlowingFluidsCompat.maxRainAmount * (rainLevel - (float)Config.minRainLevelPuddle)),0, Config.maxWaterAmount);
                      }
                      if (Config.isAdaptive) FlowingFluidsCompat.tempRainArray.add(true);
