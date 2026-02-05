@@ -59,7 +59,8 @@ public abstract class MixinWaterFluid extends FlowingFluid {
                 var managers = GameBusEvents.MANAGERS;
                 WeatherHandler handle = (WeatherHandler) managers.get(level.dimension());
                 float rainLevel = handle.getPrecipitation(blockPos.getCenter());
-                boolean isRaining = rainLevel > 0;
+                boolean isRaining = rainLevel > Config.minRainLevelPuddle;
+                rainLevel -= (float) Config.minRainLevelPuddle;
                 this.isWithinInfBiomeHeights = FlowingFluids.config.fastBiomeRefillAtSeaLevelOnly ? level.getSeaLevel() == blockPos.getY() || level.getSeaLevel() - 1 == blockPos.getY() : level.getSeaLevel() == blockPos.getY() && blockPos.getY() > 0;
                 this.hasSkyLight = level.getBrightness(LightLayer.SKY, blockPos) > 0;
                 this.isInfBiome = FFFluidUtils.matchInfiniteBiomes(level.getBiome(blockPos));
@@ -74,14 +75,6 @@ public abstract class MixinWaterFluid extends FlowingFluid {
                         return;
                     }
 
-                    if (this.ff$tryRainFill(level, blockPos, level.random.nextFloat(),isRaining,rainLevel)) {
-                        if (FlowingFluids.config.printRandomTicks) {
-                            String var7 = String.valueOf(blockPos);
-                            FlowingFluids.info("--- Water was filled by rain at " + var7 + ". Chance: " + FlowingFluids.config.rainRefillChance);
-                        }
-
-                        return;
-                    }
 
                     if (this.ff$tryEvaporateNether(level, blockPos, amount, level.random.nextFloat())) {
                         if (FlowingFluids.config.printRandomTicks) {
@@ -96,9 +89,6 @@ public abstract class MixinWaterFluid extends FlowingFluid {
                         String var10000 = String.valueOf(blockPos);
                         FlowingFluids.info("--- Water was evaporated - non Nether at " + var10000 + ". Chance: " + FlowingFluids.config.evaporationChanceV2);
                     }
-                } else if (this.ff$tryRainFill(level, blockPos, level.random.nextFloat(),isRaining,rainLevel) && FlowingFluids.config.printRandomTicks) {
-                    String var9 = String.valueOf(blockPos);
-                    FlowingFluids.info("--- Water was filled by rain at " + var9 + ". Chance: " + FlowingFluids.config.rainRefillChance);
                 }
 
             }
