@@ -57,7 +57,8 @@ public static void ServerTick(ServerTickEvent.Post event ) {
                 var managers = GameBusEvents.MANAGERS;
                 WeatherHandler handle = (WeatherHandler) managers.get(player.level().dimension());
                 Level level = player.level();
-             for (int i = 0; Config.realisticDownfall && i <= Config.maxPaddleRadius * 16.25f || !Config.realisticDownfall && i <= 2; i++) {
+
+             for (int i = 0; Config.realisticDownfall && i <= Config.maxPaddleRadius / 16.25f || !Config.realisticDownfall && i <= 2; i++) {
                  int randX = (int)(-Config.maxPaddleRadius + (Math.random() * Config.maxPaddleRadius * 2) );
                  int randZ = (int)(-Config.maxPaddleRadius + (Math.random() * Config.maxPaddleRadius * 2) );
                  Vec3 pos = new Vec3(player.position().x + randX,200,player.position().z + randZ);
@@ -70,16 +71,17 @@ public static void ServerTick(ServerTickEvent.Post event ) {
 
 
                  BlockPos blockPos = topBlock;
-                 if (isRaining && level.canSeeSky(blockPos.above()) && !level.getBiome(blockPos).is(BiomeTags.HAS_VILLAGE_DESERT)) {
+                 if (level.random.nextFloat() < Math.min(FlowingFluids.config.rainRefillChance, FlowingFluids.config.evaporationChanceV2 / 3.0F) && isRaining && level.canSeeSky(blockPos.above()) && !level.getBiome(blockPos).is(BiomeTags.HAS_VILLAGE_DESERT)) {
                      int amount = 0;
                      if (Config.realisticDownfall) {
                          int rad = Config.maxPaddleRadius * 2 + 1;
                          int totalArea = rad * rad;
-                         float averageTime = (((float)totalArea / (int)(Config.maxPaddleRadius * 16.25f) * 20) / 50f);
+                         float averageTime = (((float)totalArea / (int)(Config.maxPaddleRadius / 16.25f * 20)) / 50f);
                          amount = (int)((Config.maxRainDownfall * rainLevel * averageTime)/125f);
+
                      }
                      else if (rainLevel > (float)Config.minRainLevelPuddle){
-                         Math.clamp((int)(FlowingFluidsCompat.maxRainAmount * (rainLevel - (float)Config.minRainLevelPuddle)),0, Config.maxWaterAmount);
+                         amount = Math.clamp((int)(FlowingFluidsCompat.maxRainAmount * (rainLevel - (float)Config.minRainLevelPuddle)),0, Config.maxWaterAmount);
                      }
                      if (Config.isAdaptive) FlowingFluidsCompat.tempRainArray.add(true);
                      FFFluidUtils.setFluidStateAtPosToNewAmount(level, blockPos, Fluids.WATER, amount);

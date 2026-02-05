@@ -59,7 +59,7 @@ public abstract class MixinWaterFluid extends FlowingFluid {
                 var managers = GameBusEvents.MANAGERS;
                 WeatherHandler handle = (WeatherHandler) managers.get(level.dimension());
                 float rainLevel = handle.getPrecipitation(blockPos.getCenter());
-                boolean isRaining = rainLevel > Config.minRainLevelPuddle;
+                boolean isRaining = rainLevel > 0;
                 rainLevel -= (float) Config.minRainLevelPuddle;
                 this.isWithinInfBiomeHeights = FlowingFluids.config.fastBiomeRefillAtSeaLevelOnly ? level.getSeaLevel() == blockPos.getY() || level.getSeaLevel() - 1 == blockPos.getY() : level.getSeaLevel() == blockPos.getY() && blockPos.getY() > 0;
                 this.hasSkyLight = level.getBrightness(LightLayer.SKY, blockPos) > 0;
