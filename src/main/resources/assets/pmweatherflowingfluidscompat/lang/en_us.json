@@ -6,5 +6,7 @@
 "pmweatherflowingfluidscompat.configuration.rainanywhere" : "Rain Everywhere",
 "pmweatherflowingfluidscompat.configuration.maxdrainchance" : "Max Drain Chance",
 "pmweatherflowingfluidscompat.configuration.rainfillsblocks" : "Rain On Water Blocks",
-"pmweatherflowingfluidscompat.configuration.raindisabledwhileraining" : "Draining Disabled while Raining"
+"pmweatherflowingfluidscompat.configuration.raindisabledwhileraining" : "Draining Disabled while Raining",
+  "pmweatherflowingfluidscompat.configuration.maxpuddleradius" : "Max Puddle Radius",
+  "pmweatherflowingfluidscompat.configuration.minlevelpuddle" : "Minimum Rain Level for Puddle Formation"
 }

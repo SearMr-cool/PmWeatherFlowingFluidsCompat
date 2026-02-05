@@ -48,32 +48,45 @@ import static dev.protomanly.pmweather.weather.ThermodynamicEngine.getPrecipitat
 
 @EventBusSubscriber(modid = PmWeatherFlowingFluidsCompat.MODID, bus=EventBusSubscriber.Bus.GAME)
 public class EventHandlerServer {
+;
     @SubscribeEvent
 public static void ServerTick(ServerTickEvent.Post event ) {
-
-        if (true) {
             List<ServerPlayer> players =  event.getServer().getPlayerList().getPlayers();
+
             for (ServerPlayer player : players) {
-                int randX = (int)(-Config.maxPaddleRadius + (Math.random() * Config.maxPaddleRadius * 2) );
-                int randZ = (int)(-Config.maxPaddleRadius + (Math.random() * Config.maxPaddleRadius * 2) );
-                Vec3 pos = new Vec3(player.position().x + randX,200,player.position().z + randZ);
-                int topMostBlock = player.level().getHeight(Heightmap.Types.WORLD_SURFACE,(int)pos.x,(int)pos.z);
-                BlockPos topBlock = new BlockPos((int)pos.x,topMostBlock,(int)pos.z);
                 var managers = GameBusEvents.MANAGERS;
                 WeatherHandler handle = (WeatherHandler) managers.get(player.level().dimension());
-                float rainLevel = handle.getPrecipitation(topBlock.getCenter());
-                boolean isRaining = rainLevel > 0;
+                Level level = player.level();
+             for (int i = 0; Config.realisticDownfall && i <= 7 || !Config.realisticDownfall && i <= 2; i++) {
+                 int randX = (int)(-Config.maxPaddleRadius + (Math.random() * Config.maxPaddleRadius * 2) );
+                 int randZ = (int)(-Config.maxPaddleRadius + (Math.random() * Config.maxPaddleRadius * 2) );
+                 Vec3 pos = new Vec3(player.position().x + randX,200,player.position().z + randZ);
+                 int topMostBlock = player.level().getHeight(Heightmap.Types.WORLD_SURFACE,(int)pos.x,(int)pos.z);
+                 BlockPos topBlock = new BlockPos((int)pos.x,topMostBlock,(int)pos.z);
 
-                    Level level = player.level();
-                    BlockPos blockPos = topBlock;
-                    BlockState state = level.getBlockState(blockPos);
-                if (level.random.nextFloat() < Math.min(FlowingFluids.config.rainRefillChance, FlowingFluids.config.evaporationChanceV2 / 3.0F) && isRaining && level.canSeeSky(blockPos.above()) && !level.getBiome(blockPos).is(BiomeTags.HAS_VILLAGE_DESERT)) {
-                    int amount = Math.clamp((int)(FlowingFluidsCompat.maxRainAmount * rainLevel),0, Config.maxWaterAmount);
-                    if (Config.isAdaptive) FlowingFluidsCompat.tempRainArray.add(true);
-                    FFFluidUtils.setFluidStateAtPosToNewAmount(level, blockPos, Fluids.WATER, amount);
-                }
+
+                 float rainLevel = handle.getPrecipitation(topBlock.getCenter());
+                 boolean isRaining = rainLevel > (float)Config.minRainLevelPuddle;
+
+
+                 BlockPos blockPos = topBlock;
+                 if (isRaining && level.canSeeSky(blockPos.above()) && !level.getBiome(blockPos).is(BiomeTags.HAS_VILLAGE_DESERT)) {
+                     int amount = 0;
+                     if (Config.realisticDownfall) {
+                         int rad = Config.maxPaddleRadius * 2 + 1;
+                         int totalArea = rad * rad;
+                         float averageTime = (((float)totalArea / 160) / 50f);
+                         amount = (int)((Config.maxRainDownfall * rainLevel * averageTime)/125f);
+                     }
+                     else {
+                         Math.clamp((int)(FlowingFluidsCompat.maxRainAmount * (rainLevel - (float)Config.minRainLevelPuddle)),0, Config.maxWaterAmount);
+                     }
+                     if (Config.isAdaptive) FlowingFluidsCompat.tempRainArray.add(true);
+                     FFFluidUtils.setFluidStateAtPosToNewAmount(level, blockPos, Fluids.WATER, amount);
+                 }
+             }
             }
-        }
+
         FlowingFluidsCompat.OnTick();
     if (Config.rainFillsBlocks && !FlowingFluids.config.rainFillsWaterHigherV2) {
         FlowingFluids.config.rainFillsWaterHigherV2=true;
