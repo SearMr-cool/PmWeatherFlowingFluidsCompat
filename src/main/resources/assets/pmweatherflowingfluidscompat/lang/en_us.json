@@ -8,5 +8,7 @@
 "pmweatherflowingfluidscompat.configuration.rainfillsblocks" : "Rain On Water Blocks",
 "pmweatherflowingfluidscompat.configuration.raindisabledwhileraining" : "Draining Disabled while Raining",
   "pmweatherflowingfluidscompat.configuration.maxpuddleradius" : "Max Puddle Radius",
-  "pmweatherflowingfluidscompat.configuration.minlevelpuddle" : "Minimum Rain Level for Puddle Formation"
+  "pmweatherflowingfluidscompat.configuration.minlevelpuddle" : "Minimum Rain Level for Puddle Formation",
+  "pmweatherflowingfluidscompat.configuration.maxraindownfall" : "Max Realistic Rain Downfall",
+  "pmweatherflowingfluidscompat.configuration.realisticdownfall" : "Realistic Downfall"
 }
