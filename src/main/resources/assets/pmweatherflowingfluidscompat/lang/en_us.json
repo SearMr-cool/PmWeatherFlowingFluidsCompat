@@ -3,8 +3,11 @@
 "pmweatherflowingfluidscompat.configuration.waterdrainsrain" : "Drain Water in Rain",
 "pmweatherflowingfluidscompat.configuration.isadaptive" : "Adaptive Mode",
 "pmweatherflowingfluidscompat.configuration.targettps" : "Target Tick Duration",
-"pmweatherflowingfluidscompat.configuration.rainanywhere" : "Rain Everywhere",
 "pmweatherflowingfluidscompat.configuration.maxdrainchance" : "Max Drain Chance",
 "pmweatherflowingfluidscompat.configuration.rainfillsblocks" : "Rain On Water Blocks",
-"pmweatherflowingfluidscompat.configuration.raindisabledwhileraining" : "Draining Disabled while Raining"
+"pmweatherflowingfluidscompat.configuration.raindisabledwhileraining" : "Draining Disabled while Raining",
+  "pmweatherflowingfluidscompat.configuration.maxpuddleradius" : "Max Puddle Radius",
+  "pmweatherflowingfluidscompat.configuration.minlevelpuddle" : "Minimum Rain Level for Puddle Formation",
+  "pmweatherflowingfluidscompat.configuration.maxraindownfall" : "Max Realistic Rain Downfall",
+  "pmweatherflowingfluidscompat.configuration.realisticdownfall" : "Realistic Downfall"
 }

@@ -215,7 +215,8 @@ public abstract class MixinFlowingFluid extends Fluid {
                 var managers = GameBusEvents.MANAGERS;
                 WeatherHandler handle = (WeatherHandler) managers.get(level.dimension());
                 float rainLevel = handle.getPrecipitation(blockPos.above().getBottomCenter());
-                boolean isRaining = rainLevel > 0;
+                boolean isRaining = rainLevel > Config.minRainLevelPuddle;
+
                 FlowingFluids.isManeuveringFluids = true;
                 boolean withinInfBiomeHeights = FlowingFluids.config.fastBiomeRefillAtSeaLevelOnly ? level.getSeaLevel() == blockPos.getY() || level.getSeaLevel() - 1 == blockPos.getY() : level.getSeaLevel() == blockPos.getY() && blockPos.getY() > 0;
                 boolean isWaterAndInfiniteBiome = fluidState.is(FluidTags.WATER) && withinInfBiomeHeights && FFFluidUtils.matchInfiniteBiomes(level.getBiome(blockPos)) && level.getBrightness(LightLayer.SKY, blockPos) > 0;
