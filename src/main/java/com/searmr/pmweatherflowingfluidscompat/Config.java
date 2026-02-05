@@ -89,7 +89,7 @@ public class Config {
         max_puddle_radius = BUILDER.comment("How far away from the player puddles can form").defineInRange("maxpuddleradius",10,0,200);
         min_rain_level_puddle = BUILDER.comment("What is the minimum rain level puddles can form at").defineInRange("minlevelpuddle",0.2,0,1);
         max_rain_downfall = BUILDER.comment("When realistic downfall is enabled what should the peak mm/h be").defineInRange("maxraindownfall",1,0,400);
-        realistic_downfall = BUILDER.comment("If enabled this attempts to make rain downfall 'realistic' by calculating amounts based off how long the minecraft day is").define("realisticDownfall",false);
+        realistic_downfall = BUILDER.comment("If enabled this attempts to make rain downfall 'realistic' by calculating amounts based off how long the minecraft day is (Overrides max water amount").define("realisticdownfall",false);
 
 
         thing = BUILDER.build();
