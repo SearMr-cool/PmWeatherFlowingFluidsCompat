@@ -1,18 +1,15 @@
 package com.searmr.pmweatherflowingfluidscompat.mixin;
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by FernFlower decompiler)
-//
 
 
-
+import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.searmr.pmweatherflowingfluidscompat.Config;
-import com.searmr.pmweatherflowingfluidscompat.FlowingFluidsCompat;
-import com.searmr.pmweatherflowingfluidscompat.PmWeatherFlowingFluidsCompat;
 import dev.protomanly.pmweather.event.GameBusEvents;
 import dev.protomanly.pmweather.weather.WeatherHandler;
-import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
@@ -34,77 +31,105 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import traben.flowing_fluids.FFFluidUtils;
 import traben.flowing_fluids.FlowingFluids;
 
+import java.util.Random;
 
-@Mixin({WaterFluid.class})
+
+@Mixin(WaterFluid.class)
 public abstract class MixinWaterFluid extends FlowingFluid {
-    @Unique
-    boolean isWithinInfBiomeHeights = false;
-    @Unique
-    boolean isInfBiome = false;
-    @Unique
-    boolean hasSkyLight = false;
 
     @Shadow
-    public abstract int getDropOff(LevelReader var1);
+    public abstract int getDropOff(final LevelReader levelReader);
 
     @Shadow
-    public abstract boolean isSame(Fluid var1);
+    public abstract boolean isSame(final Fluid fluid);
 
-    protected void randomTick(Level level, BlockPos blockPos, FluidState fluidState, RandomSource randomSource) {
+    @Override
+    protected void randomTick(
+            //#if MC > 12100
+            //$$ ServerLevel level,
+            //#else
+            Level level,
+            //#endif
+            final BlockPos blockPos, final FluidState fluidState, final RandomSource randomSource) {
         super.randomTick(level, blockPos, fluidState, randomSource);
 
-        if (!level.isClientSide() && !fluidState.isEmpty() && FlowingFluids.config.enableMod && FlowingFluids.config.isFluidAllowed(fluidState)) {
-            if (!FlowingFluids.config.dontTickAtLocation(blockPos, level)) {
+        if (level.isClientSide()
+                || fluidState.isEmpty()
+                || !FlowingFluids.config.enableMod
+                || !FlowingFluids.config.isFluidAllowed(fluidState)) return;
 
-                var managers = GameBusEvents.MANAGERS;
-                WeatherHandler handle = (WeatherHandler) managers.get(level.dimension());
-                float rainLevel = handle.getPrecipitation(blockPos.getCenter());
-                boolean isRaining = rainLevel > 0;
-                rainLevel -= (float) Config.minRainLevelPuddle;
-                this.isWithinInfBiomeHeights = FlowingFluids.config.fastBiomeRefillAtSeaLevelOnly ? level.getSeaLevel() == blockPos.getY() || level.getSeaLevel() - 1 == blockPos.getY() : level.getSeaLevel() == blockPos.getY() && blockPos.getY() > 0;
-                this.hasSkyLight = level.getBrightness(LightLayer.SKY, blockPos) > 0;
-                this.isInfBiome = FFFluidUtils.matchInfiniteBiomes(level.getBiome(blockPos));
-                int amount = fluidState.getAmount();
-                if (amount < 8) {
-                    if (this.ff$tryBiomeFillOrDrain(level, blockPos, amount, level.random.nextFloat(),isRaining)) {
-                        if (FlowingFluids.config.printRandomTicks) {
-                            String var8 = String.valueOf(blockPos);
-                            FlowingFluids.info("--- Water was filled by biome at " + var8 + ". Chance: " + FlowingFluids.config.oceanRiverSwampRefillChance);
-                        }
+        if (FlowingFluids.config.dontTickAtLocation(blockPos, level)) return; // do not calculate
 
-                        return;
-                    }
+        int amount = fluidState.getAmount();
 
+        // Twilight forest presents its fluid state as water at level 1
+        if (FlowingFluids.TWILIGHT_FOREST
+                && amount == 1
+                && "twilightforest:twilight_portal".equals(
+                //#if MC > 1.20.1
+                BuiltInRegistries.BLOCK.wrapAsHolder(level.getBlockState(blockPos).getBlock()).getRegisteredName()
+                //#else
+                //$$ BuiltInRegistries.BLOCK.getKey(level.getBlockState(blockPos).getBlock()).toString()
+                //#endif
+        )) return;
 
-                    if (this.ff$tryEvaporateNether(level, blockPos, amount, level.random.nextFloat())) {
-                        if (FlowingFluids.config.printRandomTicks) {
-                            String var6 = String.valueOf(blockPos);
-                            FlowingFluids.info("--- Water was evaporated via Nether at " + var6 + ". Chance: " + FlowingFluids.config.evaporationChanceV2);
-                        }
+        boolean isWithinInfBiomeHeights = FlowingFluids.config.fastBiomeRefillAtSeaLevelOnly
+                ? FFFluidUtils.seaLevel(level) == blockPos.getY() || FFFluidUtils.seaLevel(level) - 1 == blockPos.getY()
+                : FFFluidUtils.seaLevel(level) == blockPos.getY() && blockPos.getY() > 0;
 
-                        return;
-                    }
+        boolean isInfBiome = FFFluidUtils.matchInfiniteBiomes(level.getBiome(blockPos));
 
-                    if (this.ff$tryEvaporate(level, blockPos, amount, level.random.nextFloat(),isRaining) && FlowingFluids.config.printRandomTicks) {
-                        String var10000 = String.valueOf(blockPos);
-                        FlowingFluids.info("--- Water was evaporated - non Nether at " + var10000 + ". Chance: " + FlowingFluids.config.evaporationChanceV2);
-                    }
-                }
-
+        if (amount < 8) {
+            boolean hasSkyLight = level.getBrightness(LightLayer.SKY, blockPos) > 0; // is close enough to sky/atmosphere access
+            var managers = GameBusEvents.MANAGERS;
+            WeatherHandler handle = managers.get(level.dimension());
+            if (ff$tryBiomeFillOrDrain(level, blockPos, amount, level.random.nextFloat(), isInfBiome, isWithinInfBiomeHeights, hasSkyLight,handle)) {
+                if (!Config.waterDrainsRain && handle.getPrecipitation(blockPos.getCenter()) > 0) return;
+                if (FlowingFluids.config.printRandomTicks)
+                    FlowingFluids.info("--- Water was filled by biome at "+blockPos+". Chance: "+ FlowingFluids.config.oceanRiverSwampRefillChance);
+                return;
+            }
+            if (ff$tryRainFill(level, blockPos, level.random.nextFloat(), isInfBiome, isWithinInfBiomeHeights)) {
+                if (FlowingFluids.config.printRandomTicks)
+                    FlowingFluids.info("--- Water was filled by rain at "+blockPos+". Chance: "+ FlowingFluids.config.rainRefillChance);
+                return;
+            }
+            if (ff$tryEvaporateNether(level, blockPos, amount, level.random.nextFloat())) {
+                if (FlowingFluids.config.printRandomTicks)
+                    FlowingFluids.info("--- Water was evaporated via Nether at "+blockPos+". Chance: "+ FlowingFluids.config.evaporationChanceV2);
+                return;
+            }
+            if (ff$tryEvaporate(level, blockPos, amount, level.random.nextFloat(), isInfBiome, isWithinInfBiomeHeights, hasSkyLight)) {
+                if (!Config.waterDrainsRain && handle.getPrecipitation(blockPos.getCenter()) > 0) return;
+                if (FlowingFluids.config.printRandomTicks)
+                    FlowingFluids.info("--- Water was evaporated - non Nether at "+blockPos+". Chance: "+ FlowingFluids.config.evaporationChanceV2);
+            }
+        } else {
+            if (ff$tryRainFill(level, blockPos, level.random.nextFloat(), isInfBiome, isWithinInfBiomeHeights)) {
+                if (FlowingFluids.config.printRandomTicks)
+                    FlowingFluids.info("--- Water was filled by rain at "+blockPos+". Chance: "+ FlowingFluids.config.rainRefillChance);
+                // return;
             }
         }
     }
 
+
+
+
     @Unique
-    private boolean ff$tryRainFill(Level level, BlockPos blockPos, float chance, boolean isRaining,float rainLevel) {
-        if (chance < Math.min(FlowingFluids.config.rainRefillChance, FlowingFluids.config.evaporationChanceV2 / 3.0F) && isRaining && level.canSeeSky(blockPos.above()) && (!this.isInfBiome || !this.isWithinInfBiomeHeights || Config.rainAnywhere) && !level.getBiome(blockPos).is(BiomeTags.HAS_VILLAGE_DESERT)) {
-            int amount = Math.clamp((int)(FlowingFluidsCompat.maxRainAmount * rainLevel),0, Config.maxWaterAmount);
-            if (Config.isAdaptive) FlowingFluidsCompat.tempRainArray.add(true);
-            Pair<Integer, Runnable> result = FFFluidUtils.placeConnectedFluidAmountAndPlaceAction(level, blockPos, amount, this, 40, FlowingFluids.config.rainFillsWaterHigherV2, false);
-            if ((Integer)result.first() != amount) {
-
-                ((Runnable)result.second()).run();
-
+    private boolean ff$tryRainFill(final Level level, final BlockPos blockPos, float chance, boolean isInfBiome, boolean isWithinInfBiomeHeights) {
+        //this evaporation limit is critical!!!! otherwise the water fills endlessly
+        if (chance < Math.min(FlowingFluids.config.rainRefillChance, FlowingFluids.config.evaporationChanceV2 / 3)
+                && level.isRaining()
+                && level.canSeeSky(blockPos.above())
+                && !(isInfBiome && isWithinInfBiomeHeights) // very important with fill up behaviour
+                && !level.getBiome(blockPos).is(BiomeTags.HAS_VILLAGE_DESERT)
+        ) {
+            int amount = level.isThundering() ? 2 : 1;
+            var result = FFFluidUtils.placeConnectedFluidAmountAndPlaceAction(
+                    level, blockPos, amount, this, 40, FlowingFluids.config.rainFillsWaterHigherV2, false);
+            if (result.first() != amount) {
+                result.second().run();
                 return true;
             }
         }
@@ -112,72 +137,98 @@ public abstract class MixinWaterFluid extends FlowingFluid {
     }
 
     @Unique
-    private boolean ff$tryBiomeFillOrDrain(Level level, BlockPos blockPos, int amount, float chance, boolean isRaining) {
-        if (!Config.waterDrainsRain && isRaining) return false;
-        if (level.getSeaLevel() == blockPos.getY()) {
-            if (chance < FlowingFluids.config.infiniteWaterBiomeNonConsumeChance || chance < FlowingFluids.config.oceanRiverSwampRefillChance || isRaining && chance < FlowingFluids.config.rainRefillChance) {
-                FluidState below = level.getFluidState(blockPos.below());
-                if (below.getAmount() == 8 && below.is(FluidTags.WATER) && this.hasSkyLight && this.isInfBiome) {
+    private boolean ff$tryBiomeFillOrDrain(final Level level, final BlockPos blockPos, int amount, float chance, boolean isInfBiome, boolean isWithinInfBiomeHeights, boolean hasSkyLight,WeatherHandler handle) {
+        if (FFFluidUtils.seaLevel(level) == blockPos.getY()) {
+            // use either infinite biome setting to trigger this draining
+            if (chance < FlowingFluids.config.infiniteWaterBiomeNonConsumeChance
+                    || chance < FlowingFluids.config.oceanRiverSwampRefillChance
+                    || (level.isRaining() && chance < FlowingFluids.config.rainRefillChance) // or rain chance
+            ) {
+                // if in ocean or river and just above sea level
+                var below = level.getFluidState(blockPos.below());
+                if (below.getAmount() == 8
+                        && below.is(FluidTags.WATER)
+                        && hasSkyLight
+                        && isInfBiome) {
+                    if (!Config.waterDrainsRain && handle.getPrecipitation(blockPos.getCenter()) > 0) return false;
                     level.setBlockAndUpdate(blockPos, FFFluidUtils.getBlockForFluidByAmount(this, amount - 2));
                     return true;
                 }
             }
-        } else if (this.isWithinInfBiomeHeights && amount < 8 && chance < FlowingFluids.config.oceanRiverSwampRefillChance && this.isInfBiome && this.hasSkyLight) {
-            level.setBlockAndUpdate(blockPos, FFFluidUtils.getBlockForFluidByAmount(this, amount + 2));
-            return true;
+        } else if (isWithinInfBiomeHeights) {
+            if (amount < 8 && chance < FlowingFluids.config.oceanRiverSwampRefillChance) {
+                // if in ocean or river and below sea level
+                if (isInfBiome && hasSkyLight) {
+                    // fill
+                    level.setBlockAndUpdate(blockPos, FFFluidUtils.getBlockForFluidByAmount(this, amount + 2));
+                    return true;
+                }
+            }
         }
 
         return false;
     }
 
     @Unique
-    private boolean ff$tryEvaporate(Level level, BlockPos blockPos, int amount, float chance,boolean isRaining) {
-        if (!Config.waterDrainsRain && isRaining) return false;
-        if (chance < FlowingFluids.config.evaporationChanceV2 && amount <= this.getDropOff(level) && level.getFluidState(blockPos.below()).isEmpty()) {
-            level.setBlockAndUpdate(blockPos, Blocks.AIR.defaultBlockState());
-            return true;
-        } else {
-            return false;
+    private boolean ff$tryEvaporate(final Level level, final BlockPos blockPos, int amount, float chance, boolean isInfBiome, boolean isWithinInfBiomeHeights, boolean hasSkyLight) {
+        if (chance < FlowingFluids.config.evaporationChanceV2) {
+            // evaporate over time if not raining
+            if (amount <= getDropOff(level)
+                    && (level.getFluidState(blockPos.below()).isEmpty())
+                    // handles water that gets stuck above water on the edges of infinite biomes
+                    || (hasSkyLight && !isInfBiome && FFFluidUtils.seaLevel(level) == blockPos.getY() )
+            ) {
+                level.setBlockAndUpdate(blockPos, Blocks.AIR.defaultBlockState());
+                return true;
+            }
         }
+        return false;
     }
+
 
     @Unique
-    private boolean ff$tryEvaporateNether(Level level, BlockPos blockPos, int amount, float chance) {
-        if (chance < FlowingFluids.config.evaporationNetherChance && level.getBiome(blockPos).is(BiomeTags.IS_NETHER)) {
-            if (amount == 1) {
-                level.setBlockAndUpdate(blockPos, Blocks.AIR.defaultBlockState());
-            } else {
-                level.setBlockAndUpdate(blockPos, FFFluidUtils.getBlockForFluidByAmount(this, amount - 3));
-            }
+    private boolean ff$tryEvaporateNether(final Level level, final BlockPos blockPos, int amount, float chance) {
 
-            return true;
-        } else {
-            return false;
+        if (chance < FlowingFluids.config.evaporationNetherChance) {
+            // evaporate always if nether
+            if (level.getBiome(blockPos).is(BiomeTags.IS_NETHER)) {
+                if (amount == 1) {
+                    level.setBlockAndUpdate(blockPos, Blocks.AIR.defaultBlockState());
+                } else {
+                    level.setBlockAndUpdate(blockPos, FFFluidUtils.getBlockForFluidByAmount(this, amount - 3));
+                }
+                return true;
+            }
         }
+        return false;
     }
 
-    @Inject(
-            method = {"getSlopeFindDistance(Lnet/minecraft/world/level/LevelReader;)I"},
-            at = {@At("RETURN")},
-            cancellable = true
-    )
-    private void ff$modifySlopeDistance(LevelReader level, CallbackInfoReturnable<Integer> cir) {
+    @Inject(method = "getSlopeFindDistance", at = @At(value = "RETURN"), cancellable = true)
+    private void ff$modifySlopeDistance(final LevelReader level, final CallbackInfoReturnable<Integer> cir) {
         if (FlowingFluids.config.enableMod && FlowingFluids.config.isFluidAllowed(this)) {
             cir.setReturnValue(Mth.clamp(FlowingFluids.config.waterFlowDistance, 1, 8));
         }
-
     }
 
-    @Inject(
-            method = {"getTickDelay(Lnet/minecraft/world/level/LevelReader;)I"},
-            at = {@At("RETURN")},
-            cancellable = true
-    )
-    private void ff$modifyTickDelay(LevelReader level, CallbackInfoReturnable<Integer> cir) {
-        if (FlowingFluids.config.enableMod && FlowingFluids.config.isFluidAllowed(this)) {
-            cir.setReturnValue(Mth.clamp(FlowingFluids.config.waterTickDelay, 1, 255));
-        }
+    @Unique private static Random random = new Random();
 
+    @Inject(method = "getTickDelay", at = @At(value = "RETURN"), cancellable = true)
+    private void ff$modifyTickDelay(final LevelReader level, final CallbackInfoReturnable<Integer> cir) {
+        if (FlowingFluids.config.enableMod && FlowingFluids.config.isFluidAllowed(this)) {
+
+            int value = Mth.clamp(FlowingFluids.config.waterTickDelay, 1, 255);
+
+            if (FlowingFluids.config.tickDelaySpread > 0) {
+                // randomly vary the tick delay a bit to spread out the updates, this will sadly affect flow behaviour
+                // somewhat but is necessary to avoid extreme lag spikes
+                value -= random.nextInt(FlowingFluids.config.tickDelaySpread + 1);
+            }
+            cir.setReturnValue(value);
+        }
+    }
+
+    @WrapWithCondition(method = "animateTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;playLocalSound(DDDLnet/minecraft/sounds/SoundEvent;Lnet/minecraft/sounds/SoundSource;FFZ)V"))
+    private boolean ff$cancelWaterSounds(Level instance, double d, double e, double f, SoundEvent arg, SoundSource arg2, float g, float h, boolean bl) {
+        return !FlowingFluids.config.enableMod;
     }
 }
-
