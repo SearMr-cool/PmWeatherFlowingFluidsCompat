@@ -71,7 +71,7 @@ public static void ServerTick(ServerTickEvent.Post event ) {
 
 
                  BlockPos blockPos = topBlock;
-                 if (level.random.nextFloat() < Math.min(FlowingFluids.config.rainRefillChance, FlowingFluids.config.evaporationChanceV2 / 3.0F) && isRaining && level.canSeeSky(blockPos.above()) && !level.getBiome(blockPos).is(BiomeTags.HAS_VILLAGE_DESERT)) {
+                 if (level.random.nextFloat() < Math.min(FlowingFluids.config.rainRefillChance, FlowingFluids.config.evaporationChanceV2 / 3.0F) && isRaining && level.canSeeSky(blockPos.above())) {
                      int amount = 0;
                      if (Config.realisticDownfall) {
                          int rad = Config.maxPaddleRadius * 2 + 1;

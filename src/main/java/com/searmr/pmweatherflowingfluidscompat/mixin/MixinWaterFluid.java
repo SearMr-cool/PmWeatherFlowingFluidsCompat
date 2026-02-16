@@ -81,8 +81,7 @@ public abstract class MixinWaterFluid extends FlowingFluid {
 
         if (amount < 8) {
             boolean hasSkyLight = level.getBrightness(LightLayer.SKY, blockPos) > 0; // is close enough to sky/atmosphere access
-            var managers = GameBusEvents.MANAGERS;
-            WeatherHandler handle = managers.get(level.dimension());
+            WeatherHandler handle = GameBusEvents.MANAGERS.get(level.dimension());
             if (ff$tryBiomeFillOrDrain(level, blockPos, amount, level.random.nextFloat(), isInfBiome, isWithinInfBiomeHeights, hasSkyLight,handle)) {
                 if (!Config.waterDrainsRain && handle.getPrecipitation(blockPos.getCenter()) > 0) return;
                 if (FlowingFluids.config.printRandomTicks)
@@ -99,8 +98,8 @@ public abstract class MixinWaterFluid extends FlowingFluid {
                     FlowingFluids.info("--- Water was evaporated via Nether at "+blockPos+". Chance: "+ FlowingFluids.config.evaporationChanceV2);
                 return;
             }
-            if (ff$tryEvaporate(level, blockPos, amount, level.random.nextFloat(), isInfBiome, isWithinInfBiomeHeights, hasSkyLight)) {
-                if (!Config.waterDrainsRain && handle.getPrecipitation(blockPos.getCenter()) > 0) return;
+            if (ff$tryEvaporate(level, blockPos, amount, level.random.nextFloat(), isInfBiome, isWithinInfBiomeHeights, hasSkyLight, handle)) {
+
                 if (FlowingFluids.config.printRandomTicks)
                     FlowingFluids.info("--- Water was evaporated - non Nether at "+blockPos+". Chance: "+ FlowingFluids.config.evaporationChanceV2);
             }
@@ -170,8 +169,9 @@ public abstract class MixinWaterFluid extends FlowingFluid {
     }
 
     @Unique
-    private boolean ff$tryEvaporate(final Level level, final BlockPos blockPos, int amount, float chance, boolean isInfBiome, boolean isWithinInfBiomeHeights, boolean hasSkyLight) {
+    private boolean ff$tryEvaporate(final Level level, final BlockPos blockPos, int amount, float chance, boolean isInfBiome, boolean isWithinInfBiomeHeights, boolean hasSkyLight, WeatherHandler handle) {
         if (chance < FlowingFluids.config.evaporationChanceV2) {
+            if (!Config.waterDrainsRain && handle.getPrecipitation(blockPos.getCenter()) > 0) return false;
             // evaporate over time if not raining
             if (amount <= getDropOff(level)
                     && (level.getFluidState(blockPos.below()).isEmpty())
