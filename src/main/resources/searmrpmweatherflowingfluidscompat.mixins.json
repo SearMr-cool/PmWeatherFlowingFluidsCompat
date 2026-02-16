@@ -3,9 +3,7 @@
   "package": "com.searmr.pmweatherflowingfluidscompat.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "MixinWaterFluid",
-    "MixinFlowingFluid",
-    "PmWeatherMixin"
+    "MixinWaterFluid"
   ],
 
   "injectors": {
