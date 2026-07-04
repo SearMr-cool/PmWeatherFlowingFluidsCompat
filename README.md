@@ -7,7 +7,7 @@ It achieves this by modifying some of Flowing Fluids base mixins but the overall
 
 ## What has changed with Flowing Fluids?
 
-This mod modifies 2 of Flowing Fluids mixins mostly just replacing vanilla rain checks with rain checks from PmWeather, however some things are affected by this mods config so some normal base functionality is disabled by default to enhance gameplay, one another thing to note is that draining chance is now a dynamic variable as if it is left static major constant lag can occur.
+This mod modifies 1 of Flowing Fluids mixins mostly just replacing vanilla rain checks with rain checks from PmWeather, however some things are affected by this mods config so some normal base functionality is disabled by default to enhance gameplay.
 
   
 
@@ -24,8 +24,8 @@ Mods used:
  - https://modrinth.com/mod/protomanlys-weather
 
 Versions Used:
- - https://modrinth.com/mod/flowing-fluids/version/6gW0qIwR
- -  https://modrinth.com/mod/protomanlys-weather/version/0.14.16-alpha
+ -  https://modrinth.com/mod/flowing-fluids/version/1.0.6-neoforge-1.21
+ -  https://modrinth.com/mod/protomanlys-weather/version/0.16.4-alpha
 
 ## Other Info
 
