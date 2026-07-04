@@ -30,13 +30,3 @@ Versions Used:
 ## Other Info
 
  - Made with neoforge 21.1.186
-
- 
-
-
-
-
-
-
-
-
