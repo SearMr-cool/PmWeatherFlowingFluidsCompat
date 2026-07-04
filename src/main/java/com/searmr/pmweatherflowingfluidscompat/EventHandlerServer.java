@@ -67,7 +67,7 @@ public static void ServerTick(ServerTickEvent.Post event ) {
 
 
                  float rainLevel = handle.getPrecipitation(topBlock.getCenter());
-                 boolean isRaining = rainLevel > 0;
+                 boolean isRaining = rainLevel > 0 && getPrecipitationType(handle,topBlock.getCenter(),level, 0).equals(ThermodynamicEngine.Precipitation.RAIN);
 
 
                  BlockPos blockPos = topBlock;

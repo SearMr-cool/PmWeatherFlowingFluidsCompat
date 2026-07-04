@@ -1,5 +1,7 @@
 package com.searmr.pmweatherflowingfluidscompat;
 
+import dev.protomanly.pmweather.addons.AddonHelper;
+import dev.protomanly.pmweather.addons.AddonInfo;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -34,6 +36,8 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
+import java.util.List;
+
 // The value here should match an entry in the META-INF/neoforge.mods.toml file
 @Mod(PmWeatherFlowingFluidsCompat.MODID)
 public class PmWeatherFlowingFluidsCompat {
@@ -45,6 +49,7 @@ public class PmWeatherFlowingFluidsCompat {
     // The constructor for the mod class is the first code that is run when your mod is loaded.
     // FML will recognize some parameter types like IEventBus or ModContainer and pass them in automatically.
     public PmWeatherFlowingFluidsCompat(IEventBus modEventBus, ModContainer modContainer) {
+        AddonHelper.registerAddon(new AddonInfo(modContainer, List.of("0.16.4")));
         // Register the commonSetup method for modloading
         modContainer.registerConfig(ModConfig.Type.SERVER, com.searmr.pmweatherflowingfluidscompat.Config.thing);
     }
