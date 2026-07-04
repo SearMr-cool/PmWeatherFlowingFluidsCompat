@@ -53,7 +53,7 @@ public class PmWeatherFlowingFluidsCompat {
     public PmWeatherFlowingFluidsCompat(IEventBus modEventBus, ModContainer modContainer) {
         AddonHelper.registerAddon(new AddonInfo(modContainer, List.of("0.16.4")));
         modContainer.registerConfig(ModConfig.Type.SERVER, com.searmr.pmweatherflowingfluidscompat.Config.thing);
-        if (Dist.CLIENT.isClient()) {
+        if (Dist.DEDICATED_SERVER.isClient()) {
 
             modContainer.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
         }
