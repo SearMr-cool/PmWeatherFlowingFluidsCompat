@@ -2,6 +2,8 @@ package com.searmr.pmweatherflowingfluidscompat;
 
 import dev.protomanly.pmweather.addons.AddonHelper;
 import dev.protomanly.pmweather.addons.AddonInfo;
+import net.neoforged.neoforge.client.gui.ConfigurationScreen;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -50,8 +52,11 @@ public class PmWeatherFlowingFluidsCompat {
     // FML will recognize some parameter types like IEventBus or ModContainer and pass them in automatically.
     public PmWeatherFlowingFluidsCompat(IEventBus modEventBus, ModContainer modContainer) {
         AddonHelper.registerAddon(new AddonInfo(modContainer, List.of("0.16.4")));
-        // Register the commonSetup method for modloading
         modContainer.registerConfig(ModConfig.Type.SERVER, com.searmr.pmweatherflowingfluidscompat.Config.thing);
+        if (Dist.CLIENT.isClient()) {
+
+            modContainer.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
+        }
     }
 
 
