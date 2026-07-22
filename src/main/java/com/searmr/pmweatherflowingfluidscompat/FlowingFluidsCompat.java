@@ -14,17 +14,10 @@ import java.util.List;
 
 public class FlowingFluidsCompat {
     public static List<Boolean> tempRainArray = new ArrayList<>();
-    static boolean isRaining = false;
+    static boolean isRaining = true;
     public static int maxRainAmount = 0;
     static int tickDelay = 60;
     static int currentTick = 0;
-
-    static float maxDrainChance  =  0.1f;
-    static double targetTickTime = 30;
-
-    static List<Float> stableDrainVales = new ArrayList<>();
-    public static boolean modExist = false;
-
     static double GetTickTimeMs() {
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         if (server != null) {
@@ -32,46 +25,21 @@ public class FlowingFluidsCompat {
         }
         return 0.0;
     }
-
-    public static void OnTick() {
-
-
+    public static void OnTick(boolean rainingSomewhere) {
         currentTick++;
-
         double tickTime = GetTickTimeMs();
-
-        float originalVal = FlowingFluids.config.infiniteWaterBiomeDrainSurfaceChance;
+       isRaining = isRaining || rainingSomewhere;
         if (currentTick >= tickDelay) {
-
-            if (tickTime <= Config.targetTps) {
-                originalVal=Math.clamp(originalVal+0.001f,0,(float)Config.maxDrainChance /100f);
-
-            }
-            else originalVal=Math.clamp(originalVal + -0.002f,0,(float)Config.maxDrainChance /100f);
             if (Config.isAdaptive) {
-
-                UpdateRain();
                 if (isRaining) {
-
-                    if (tickTime <= targetTickTime) {
-
+                    if (tickTime <= Config.targetTps) {
                         maxRainAmount = Math.clamp(maxRainAmount + 1, 0, Config.maxWaterAmount);
                     } else maxRainAmount = Math.clamp(maxRainAmount - 1, 0, Config.maxWaterAmount);
-                } else maxRainAmount = 0;
-
+                } else maxRainAmount = Math.clamp(maxRainAmount - 3, 0, Config.maxWaterAmount);
             }   else maxRainAmount = Config.maxWaterAmount;
         currentTick=0;
+        isRaining = false;
+        PmWeatherFlowingFluidsCompatServer.LOGGER.debug(String.valueOf(maxRainAmount));
         } else currentTick++;
-        if (tickTime > 50 || isRaining && Config.drainingDisabledWhileRaining) originalVal=0f;
-        if (originalVal != FlowingFluids.config.infiniteWaterBiomeDrainSurfaceChance) FlowingFluids.config.infiniteWaterBiomeDrainSurfaceChance=originalVal;
-
     }
-
-    static void UpdateRain() {
-
-        isRaining = !tempRainArray.isEmpty();
-        tempRainArray.clear();
-
-    }
-
 }

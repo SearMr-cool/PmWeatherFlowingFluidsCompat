@@ -1,58 +1,37 @@
 package com.searmr.pmweatherflowingfluidscompat;
 
 
-import dev.protomanly.pmweather.PMWeather;
-import dev.protomanly.pmweather.config.ServerConfig;
 import dev.protomanly.pmweather.event.GameBusEvents;
-import dev.protomanly.pmweather.weather.Storm;
 import dev.protomanly.pmweather.weather.ThermodynamicEngine;
 import dev.protomanly.pmweather.weather.WeatherHandler;
-import it.unimi.dsi.fastutil.Pair;
-import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Vec3i;
-import net.minecraft.network.protocol.game.ClientboundBlockDestructionPacket;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.players.PlayerList;
-import net.minecraft.tags.BiomeTags;
-import net.minecraft.tags.BlockTags;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.levelgen.Aquifer;
 import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraft.world.level.material.Fluid;
-import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.common.Tags;
-import net.neoforged.neoforge.event.server.ServerStartedEvent;
-import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.neoforged.neoforge.fluids.FluidType;
 import traben.flowing_fluids.FFFluidUtils;
 import traben.flowing_fluids.FlowingFluids;
+import traben.flowing_fluids.api.FlowingFluidsAPI;
+import traben.flowing_fluids.api.FlowingFluidsApiImpl;
 
 import java.util.*;
 
 import static dev.protomanly.pmweather.weather.ThermodynamicEngine.getPrecipitationType;
 
 
-@EventBusSubscriber(modid = PmWeatherFlowingFluidsCompat.MODID, bus=EventBusSubscriber.Bus.GAME)
+@EventBusSubscriber(modid = PmWeatherFlowingFluidsCompatServer.MODID, bus=EventBusSubscriber.Bus.GAME)
 public class EventHandlerServer {
-;
     @SubscribeEvent
 public static void ServerTick(ServerTickEvent.Post event ) {
             List<ServerPlayer> players =  event.getServer().getPlayerList().getPlayers();
-
+            boolean rainingSomewhere = false;
             for (ServerPlayer player : players) {
                 var managers = GameBusEvents.MANAGERS;
                 WeatherHandler handle = (WeatherHandler) managers.get(player.level().dimension());
@@ -72,32 +51,49 @@ public static void ServerTick(ServerTickEvent.Post event ) {
 
                  BlockPos blockPos = topBlock;
                  if (level.random.nextFloat() < Math.min(FlowingFluids.config.rainRefillChance, FlowingFluids.config.evaporationChanceV2 / 3.0F) && isRaining && level.canSeeSky(blockPos.above())) {
-                     int amount = 0;
-                     if (Config.realisticDownfall) {
-                         int rad = Config.maxPaddleRadius * 2 + 1;
-                         int totalArea = rad * rad;
-                         float averageTime = (((float)totalArea / (int)(Config.maxPaddleRadius / 16.25f * 20)) / 50f);
-                         amount = (int)((Config.maxRainDownfall * rainLevel * averageTime)/125f);
-
-                     }
-                     else if (rainLevel > (float)Config.minRainLevelPuddle){
-                         amount = Math.clamp((int)(FlowingFluidsCompat.maxRainAmount * (rainLevel - (float)Config.minRainLevelPuddle)),0, Config.maxWaterAmount);
-                     }
-                     if (Config.isAdaptive) FlowingFluidsCompat.tempRainArray.add(true);
-                     FFFluidUtils.setFluidStateAtPosToNewAmount(level, blockPos, Fluids.WATER, amount);
+                     int amount = getAmount(rainLevel);
+                     if (Config.isAdaptive) rainingSomewhere = true;
+                     BlockState blockState = level.getBlockState(blockPos.below());
+                   if (!blockState.getFluidState().is(Fluids.WATER)) {
+                       PmWeatherFlowingFluidsCompatServer.FLOWINGFLUIDSAPI.modifyFluidAmountAtPos(level, blockPos, Fluids.WATER, amount > 0 ? 1 : 0);
+                       if (amount > 1) placeWaterRecursive(level,blockPos,amount - 1);}
+                   else {
+                       placeWaterRecursive(level,blockPos.below(),amount);
+                   }
                  }
              }
             }
 
-        FlowingFluidsCompat.OnTick();
-    if (Config.rainFillsBlocks && !FlowingFluids.config.rainFillsWaterHigherV2) {
-        FlowingFluids.config.rainFillsWaterHigherV2=true;
-    }
-    else if (!Config.rainFillsBlocks && FlowingFluids.config.rainFillsWaterHigherV2) {
-        FlowingFluids.config.rainFillsWaterHigherV2=false;
-    }
+        FlowingFluidsCompat.OnTick(rainingSomewhere);
+//    if (Config.rainFillsBlocks && !FlowingFluids.config.rainFillsWaterHigherV2) {
+//        FlowingFluids.config.rainFillsWaterHigherV2=true;
+//    }
+//    else if (!Config.rainFillsBlocks && FlowingFluids.config.rainFillsWaterHigherV2) {
+//        FlowingFluids.config.rainFillsWaterHigherV2=false;
+//    }
 }
 
+
+private static void placeWaterRecursive(Level level, BlockPos blockPos, int amount) {
+        if (amount > 0) {
+            placeWaterRecursive(level,blockPos,PmWeatherFlowingFluidsCompatServer.FLOWINGFLUIDSAPI.placeFluidAmountFromPos(level, blockPos, Fluids.WATER, amount - 1,true,true));
+        }
+    }
+
+    private static int getAmount(float rainLevel) {
+        int amount = 0;
+        if (Config.realisticDownfall) {
+            int rad = Config.maxPaddleRadius * 2 + 1;
+            int totalArea = rad * rad;
+            float averageTime = (((float)totalArea / (int)(Config.maxPaddleRadius / 16.25f * 20)) / 50f);
+            amount = (int)((Config.maxRainDownfall * rainLevel * averageTime)/125f);
+
+        }
+        else if (rainLevel > (float)Config.minRainLevelPuddle){
+            amount = Math.clamp((int)(FlowingFluidsCompat.maxRainAmount * (rainLevel - (float)Config.minRainLevelPuddle)),0, Config.maxWaterAmount);
+        }
+        return amount;
+    }
 
 
 }

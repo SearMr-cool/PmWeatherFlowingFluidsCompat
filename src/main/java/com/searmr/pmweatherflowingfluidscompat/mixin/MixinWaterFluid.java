@@ -2,34 +2,21 @@ package com.searmr.pmweatherflowingfluidscompat.mixin;
 
 
 import com.bawnorton.mixinsquared.TargetHandler;
-import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.searmr.pmweatherflowingfluidscompat.Config;
 import dev.protomanly.pmweather.event.GameBusEvents;
-import dev.protomanly.pmweather.weather.WeatherHandler;
 import dev.protomanly.pmweather.weather.WeatherHandlerServer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.tags.BiomeTags;
-import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.WaterFluid;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import traben.flowing_fluids.FFFluidUtils;
-import traben.flowing_fluids.FlowingFluids;
-
-import java.util.Random;
 
 
 @Mixin(value = WaterFluid.class, priority = 1500)
@@ -46,11 +33,11 @@ public abstract class MixinWaterFluid extends FlowingFluid {
             mixin = "traben.flowing_fluids.mixin.mixins.MixinWaterFluid",
             name = " ff$tryBiomeFillOrDrain"
     )
-    @Redirect(method = "@MixinSquared:Handler",
-    at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;isRaining()Z"))
-    private boolean fillBiomeDrainMixin(Level instance, @Local BlockPos blockPos) {
-        WeatherHandlerServer handler = (WeatherHandlerServer) GameBusEvents.MANAGERS.get(instance.dimension());
-        return !Config.waterDrainsRain && handler.getPrecipitation(blockPos.getCenter()) > 0f;
+    @Inject(method = "@MixinSquared:Handler",
+    at = @At(value = "HEAD"), cancellable = true)
+    private void fillBiomeDrainMixin(Level level, BlockPos blockPos, int amount, float chance, boolean isInfBiome, boolean isWithinInfBiomeHeights, boolean hasSkyLight, CallbackInfoReturnable<Boolean> cir) {
+        WeatherHandlerServer handler = (WeatherHandlerServer) GameBusEvents.MANAGERS.get(level.dimension());
+     if (handler.getPrecipitation(blockPos.getCenter()) > 0f) cir.cancel();
     }
 
     @TargetHandler(
