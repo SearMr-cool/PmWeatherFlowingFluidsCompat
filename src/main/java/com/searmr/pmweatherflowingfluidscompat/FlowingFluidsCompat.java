@@ -39,7 +39,6 @@ public class FlowingFluidsCompat {
             }   else maxRainAmount = Config.maxWaterAmount;
         currentTick=0;
         isRaining = false;
-        PmWeatherFlowingFluidsCompatServer.LOGGER.debug(String.valueOf(maxRainAmount));
         } else currentTick++;
     }
 }
