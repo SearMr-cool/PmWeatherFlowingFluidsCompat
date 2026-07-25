@@ -7,7 +7,6 @@ import dev.protomanly.pmweather.weather.WeatherHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.Fluids;
@@ -15,11 +14,6 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
-import net.neoforged.neoforge.fluids.FluidType;
-import traben.flowing_fluids.FFFluidUtils;
-import traben.flowing_fluids.FlowingFluids;
-import traben.flowing_fluids.api.FlowingFluidsAPI;
-import traben.flowing_fluids.api.FlowingFluidsApiImpl;
 
 import java.util.*;
 
@@ -52,15 +46,11 @@ public class EventHandlerServer {
                 BlockPos blockPos = topBlock;
                 if (isRaining) {
 //                if (level.random.nextFloat() < Math.min(FlowingFluids.config.rainRefillChance, FlowingFluids.config.evaporationChanceV2 / 3.0F) && isRaining && level.canSeeSky(blockPos.above())) {
-                    int amount = getAmount(rainLevel);
+                    int amount = getAmountToPlace(rainLevel);
                     if (Config.isAdaptive) rainingSomewhere = true;
                     BlockState blockState = level.getBlockState(blockPos.below());
-                    if (!blockState.getFluidState().is(Fluids.WATER)) {
-                        PmWeatherFlowingFluidsCompatServer.FLOWINGFLUIDSAPI.modifyFluidAmountAtPos(level, blockPos, Fluids.WATER, amount);
-                    }
-                    else
-                    {
-                        PmWeatherFlowingFluidsCompatServer.FLOWINGFLUIDSAPI.placeFluidAmountFromPos(level, blockPos.below(), Fluids.WATER, amount,true,false);
+                    if (!blockState.getFluidState().is(Fluids.WATER) && amount > 1) {
+                        PmWeatherFlowingFluidsCompatServer.FLOWINGFLUIDSAPI.modifyFluidAmountAtPos(level, blockPos, Fluids.WATER, 1);
                     }
                 }
             }
@@ -75,7 +65,7 @@ public class EventHandlerServer {
 //    }
     }
 
-    private static int getAmount(float rainLevel) {
+    public static int getAmountToPlace(float rainLevel) {
         int amount = 0;
         if (Config.realisticDownfall) {
             int rad = Config.maxPaddleRadius * 2 + 1;

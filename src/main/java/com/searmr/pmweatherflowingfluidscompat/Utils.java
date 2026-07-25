@@ -17,7 +17,7 @@ public class Utils {
         if (level.getMaxBuildHeight() > blockPos.getY()) {
             BlockState blockState = level.getBlockState(blockPos);
             if (blockState.getFluidState().is(Fluids.WATER)) {
-                return getTopBlock(level,blockPos);
+                return getTopBlock(level,blockPos.above());
             }
             else return blockPos;
         }

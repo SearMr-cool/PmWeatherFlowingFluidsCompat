@@ -25,8 +25,7 @@ public class MixinFlowingFluid {
     private boolean rainCheck(Level instance, BlockPos pos, BlockState state) {
         WeatherHandlerServer handler = (WeatherHandlerServer) GameBusEvents.MANAGERS.get(instance.dimension());
 //        int topY = instance.getHeight(Heightmap.Types.WORLD_SURFACE,pos.getX(),pos.getZ());
-        BlockPos topPos = Utils.getTopBlock(instance,pos);
-        if (handler != null && handler.getPrecipitation(topPos.getCenter()) > 0f) return false;
+        if (handler != null && handler.getPrecipitation(pos.getCenter()) > 0f) return false;
         return instance.setBlockAndUpdate(pos,state);
     }
 }
