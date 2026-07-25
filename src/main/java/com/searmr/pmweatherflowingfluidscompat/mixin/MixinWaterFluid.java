@@ -5,6 +5,7 @@ import com.bawnorton.mixinsquared.TargetHandler;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.searmr.pmweatherflowingfluidscompat.Config;
 import com.searmr.pmweatherflowingfluidscompat.PmWeatherFlowingFluidsCompatServer;
+import com.searmr.pmweatherflowingfluidscompat.Utils;
 import dev.protomanly.pmweather.event.GameBusEvents;
 import dev.protomanly.pmweather.weather.WeatherHandlerServer;
 import net.minecraft.core.BlockPos;
@@ -39,8 +40,8 @@ public abstract class MixinWaterFluid extends FlowingFluid {
     at = @At(value = "HEAD"), cancellable = true)
     private void fillBiomeDrainMixin(Level level, BlockPos blockPos, int amount, float chance, boolean isInfBiome, boolean isWithinInfBiomeHeights, boolean hasSkyLight, CallbackInfoReturnable<Boolean> cir) {
         WeatherHandlerServer handler = (WeatherHandlerServer) GameBusEvents.MANAGERS.get(level.dimension());
-        int topY = level.getHeight(Heightmap.Types.WORLD_SURFACE,blockPos.getX(),blockPos.getZ());
-        BlockPos topPos = new BlockPos(blockPos.getX(),topY,blockPos.getZ());
+//        int topY = level.getHeight(Heightmap.Types.WORLD_SURFACE,blockPos.getX(),blockPos.getZ());
+        BlockPos topPos = Utils.getTopBlock(level,blockPos);
         if (handler.getPrecipitation(topPos.getCenter()) > 0f) cir.cancel();
     }
 

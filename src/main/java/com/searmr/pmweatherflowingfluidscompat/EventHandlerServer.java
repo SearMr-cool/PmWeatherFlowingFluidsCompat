@@ -56,12 +56,11 @@ public class EventHandlerServer {
                     if (Config.isAdaptive) rainingSomewhere = true;
                     BlockState blockState = level.getBlockState(blockPos.below());
                     if (!blockState.getFluidState().is(Fluids.WATER)) {
-                        PmWeatherFlowingFluidsCompatServer.FLOWINGFLUIDSAPI.modifyFluidAmountAtPos(level, blockPos, Fluids.WATER, Math.clamp(amount - (amount - 1),0,20000));
-                        PmWeatherFlowingFluidsCompatServer.FLOWINGFLUIDSAPI.placeFluidAmountFromPos(level, blockPos, Fluids.WATER, Math.clamp(amount - 1,0,20000),true,true);
+                        PmWeatherFlowingFluidsCompatServer.FLOWINGFLUIDSAPI.modifyFluidAmountAtPos(level, blockPos, Fluids.WATER, amount);
                     }
                     else
                     {
-                        PmWeatherFlowingFluidsCompatServer.FLOWINGFLUIDSAPI.placeFluidAmountFromPos(level, blockPos.below(), Fluids.WATER, amount,true,true);
+                        PmWeatherFlowingFluidsCompatServer.FLOWINGFLUIDSAPI.placeFluidAmountFromPos(level, blockPos.below(), Fluids.WATER, amount,true,false);
                     }
                 }
             }

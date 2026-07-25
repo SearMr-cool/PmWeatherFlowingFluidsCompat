@@ -2,6 +2,7 @@ package com.searmr.pmweatherflowingfluidscompat.mixin;
 
 
 import com.bawnorton.mixinsquared.TargetHandler;
+import com.searmr.pmweatherflowingfluidscompat.Utils;
 import dev.protomanly.pmweather.event.GameBusEvents;
 import dev.protomanly.pmweather.weather.WeatherHandlerServer;
 import net.minecraft.core.BlockPos;
@@ -23,8 +24,8 @@ public class MixinFlowingFluid {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;setBlockAndUpdate(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Z"))
     private boolean rainCheck(Level instance, BlockPos pos, BlockState state) {
         WeatherHandlerServer handler = (WeatherHandlerServer) GameBusEvents.MANAGERS.get(instance.dimension());
-        int topY = instance.getHeight(Heightmap.Types.WORLD_SURFACE,pos.getX(),pos.getZ());
-        BlockPos topPos = new BlockPos(pos.getX(),topY,pos.getZ());
+//        int topY = instance.getHeight(Heightmap.Types.WORLD_SURFACE,pos.getX(),pos.getZ());
+        BlockPos topPos = Utils.getTopBlock(instance,pos);
         if (handler != null && handler.getPrecipitation(topPos.getCenter()) > 0f) return false;
         return instance.setBlockAndUpdate(pos,state);
     }
