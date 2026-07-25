@@ -79,33 +79,41 @@ public class EventHandlerServer {
         HashMap<Vec2, CoastData> thing = new HashMap<>();
         int infBiomeCount = 0;
         int surfaceBlockCount = 0;
+        // we iterate through all the top blocks of the chunk here
         for (int x = 0; x < 16; x++) {
             int tempX = startPos.getX() + x;
             for (int z = 0; z < 16; z++) {
 
                 var tempPos = startPos.offset(tempX,0,z);
                 int heightT = level.getHeight(Heightmap.Types.WORLD_SURFACE,tempPos.getX(),tempPos.getZ()) - 1;
+                // set out init pos to be the surface block
                 tempPos = tempPos.atY(heightT);
                 Holder<Biome> biome = level.getBiome(tempPos);
+                // is the biome we are in an infbiome?
                 boolean isInfBiome = PmWeatherFlowingFluidsCompatServer.FLOWINGFLUIDSAPI.doesBiomeInfiniteWaterRefill(biome);
                 CoastData coastData = new CoastData(false,0);
                 if (isInfBiome) {
+                    // store depth information so we can use it later to save having to recalculate it
                     int height = level.getHeight(Heightmap.Types.OCEAN_FLOOR,tempPos.getX(),tempPos.getZ());
                     coastData.depth = level.getSeaLevel() - height;
                     infBiomeCount++;
                 }
                 else {
                     BlockState state = level.getBlockState(tempPos);
+                    // see if block in non infbiome is a solid block
                     if (!state.getFluidState().is(Fluids.WATER)) {
+                        // we store the height in the depth variable as it has no use otherwise
                         coastData.land = true;
                         coastData.depth = heightT;
                         surfaceBlockCount++;
                     }
                     else {
+                        // if it is water treat it as a infbiome block
                         int height = level.getHeight(Heightmap.Types.OCEAN_FLOOR,tempPos.getX(),tempPos.getZ());
                         coastData.depth = level.getSeaLevel() - height;
                     }
                 }
+                // put key value pair in here
                 thing.put(new Vec2(tempPos.getX(),tempPos.getZ()),coastData);
             }
         }
@@ -114,6 +122,7 @@ public class EventHandlerServer {
             ArrayList<Integer> dirCount = new ArrayList<>();
             thing.forEach((k,v) -> {
                 if (v.land) {
+                    // this goes through and finds in what direction water is most detected
                     BlockPos basePos = new BlockPos((int)k.x,v.depth,(int)k.y);
                     FluidState stateN = level.getBlockState(basePos.north()).getFluidState();
                     FluidState stateE = level.getBlockState(basePos.east()).getFluidState();
@@ -126,14 +135,17 @@ public class EventHandlerServer {
                 }
             });
             HashMap<String,Integer> storedDirections = new HashMap<>();
+            // get the total count for each direction
             storedDirections.put("north",Collections.frequency(dirCount,0));
             storedDirections.put("east",Collections.frequency(dirCount,1));
             storedDirections.put("south",Collections.frequency(dirCount,2));
             storedDirections.put("west",Collections.frequency(dirCount,3));
+            // here we store the hashmap as a list so we can we sort it to easily grab the highest value
             List<Map.Entry<String,Integer>> list = new ArrayList<>(storedDirections.entrySet());
             list.sort(Map.Entry.comparingByValue());
+            // grab the most common direction
             String direction = list.getLast().getKey();
-            // direction logic to go here
+            // direction logic to go here to find where storm surge blocks should spawn
         }
     }
 
