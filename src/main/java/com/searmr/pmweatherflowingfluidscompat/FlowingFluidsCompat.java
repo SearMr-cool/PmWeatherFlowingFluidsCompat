@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FlowingFluidsCompat {
-    public static List<Boolean> tempRainArray = new ArrayList<>();
     static boolean isRaining = true;
     public static int maxRainAmount = 0;
     static int tickDelay = 60;

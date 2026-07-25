@@ -46,7 +46,6 @@ public class Config {
     @SubscribeEvent
     private static void onLoad(ModConfigEvent event) {
         if (!(event instanceof ModConfigEvent.Unloading) && event.getConfig().getSpec() == thing){
-
             maxWaterAmount = (Integer) max_water_amount.get();
             waterDrainsRain = (boolean) water_drains_rain.get();
             isAdaptive = (boolean) is_adaptive.get();
@@ -57,14 +56,11 @@ public class Config {
             maxRainDownfall = (Integer) max_rain_downfall.get();
             realisticDownfall = (boolean) realistic_downfall.get();
         }
-
-
     }
 
 
 
     static  {
-
         max_water_amount = BUILDER.comment("The max amount of water that can be added to water during rain (This is the biggest factor when it comes to how fast flooding happens").defineInRange("maxwateramount",6,1,100);
         water_drains_rain = BUILDER.comment("Should rain be in areas that are raining? If enabled it will make flooding very difficult plus lag may occur so it is recommended to leave this off").define("waterdrainsrain",false);
         is_adaptive = BUILDER.comment("If enabled the amount of rain will dynamically adjust to try and stop overloading the users system (do note the highest this will go is still limited by the user set value").define("isadaptive",true);
@@ -73,9 +69,7 @@ public class Config {
         max_puddle_radius = BUILDER.comment("How far away from the player puddles can form").defineInRange("maxpuddleradius",120,0,200);
         min_rain_level_puddle = BUILDER.comment("What is the minimum rain level puddles can form at").defineInRange("minlevelpuddle",0.1,0,1);
         max_rain_downfall = BUILDER.comment("When realistic downfall is enabled what should the peak mm/h be").defineInRange("maxraindownfall",200,0,400);
-        realistic_downfall = BUILDER.comment("If enabled this attempts to make rain downfall 'realistic' by calculating amounts based off how long the minecraft day is (Overrides max water amount, adaptive settings and min rain level)").define("realisticdownfall",false);
-
-
+        realistic_downfall = BUILDER.comment("If enabled this attempts to make rain downfall 'realistic' by calculating amounts based off how long the minecraft day is (Overrides max water amount, adaptive settings and min rain level). Also this is highly laggy!").define("realisticdownfall",false);
         thing = BUILDER.build();
     }
 }

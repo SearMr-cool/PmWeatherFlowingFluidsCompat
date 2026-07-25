@@ -14,6 +14,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import traben.flowing_fluids.FlowingFluids;
 
 import java.util.*;
 
@@ -30,49 +31,31 @@ public class EventHandlerServer {
             var managers = GameBusEvents.MANAGERS;
             WeatherHandler handle = (WeatherHandler) managers.get(player.level().dimension());
             Level level = player.level();
-
-            for (int i = 0; Config.realisticDownfall && i <= Config.maxPaddleRadius / 16.25f || !Config.realisticDownfall && i <= 2; i++) {
+            for (int i = 0; i <= 2; i++) {
                 int randX = (int)(-Config.maxPaddleRadius + (Math.random() * Config.maxPaddleRadius * 2) );
                 int randZ = (int)(-Config.maxPaddleRadius + (Math.random() * Config.maxPaddleRadius * 2) );
                 Vec3 pos = new Vec3(player.position().x + randX,200,player.position().z + randZ);
                 int topMostBlock = player.level().getHeight(Heightmap.Types.WORLD_SURFACE,(int)pos.x,(int)pos.z);
                 BlockPos topBlock = new BlockPos((int)pos.x,topMostBlock,(int)pos.z);
-
-
                 float rainLevel = handle.getPrecipitation(topBlock.getCenter());
                 boolean isRaining = rainLevel > 0 && getPrecipitationType(handle,topBlock.getCenter(),level, 0).equals(ThermodynamicEngine.Precipitation.RAIN);
-
-
-                BlockPos blockPos = topBlock;
                 if (isRaining) {
-//                if (level.random.nextFloat() < Math.min(FlowingFluids.config.rainRefillChance, FlowingFluids.config.evaporationChanceV2 / 3.0F) && isRaining && level.canSeeSky(blockPos.above())) {
                     int amount = getAmountToPlace(rainLevel);
                     if (Config.isAdaptive) rainingSomewhere = true;
-                    BlockState blockState = level.getBlockState(blockPos.below());
+                    BlockState blockState = level.getBlockState(topBlock.below());
                     if (!blockState.getFluidState().is(Fluids.WATER) && amount > 1) {
-                        PmWeatherFlowingFluidsCompatServer.FLOWINGFLUIDSAPI.modifyFluidAmountAtPos(level, blockPos, Fluids.WATER, 1);
+                        PmWeatherFlowingFluidsCompatServer.FLOWINGFLUIDSAPI.modifyFluidAmountAtPos(level, topBlock, Fluids.WATER, 1);
                     }
                 }
             }
         }
-
         FlowingFluidsCompat.OnTick(rainingSomewhere);
-//    if (Config.rainFillsBlocks && !FlowingFluids.config.rainFillsWaterHigherV2) {
-//        FlowingFluids.config.rainFillsWaterHigherV2=true;
-//    }
-//    else if (!Config.rainFillsBlocks && FlowingFluids.config.rainFillsWaterHigherV2) {
-//        FlowingFluids.config.rainFillsWaterHigherV2=false;
-//    }
     }
 
     public static int getAmountToPlace(float rainLevel) {
         int amount = 0;
         if (Config.realisticDownfall) {
-            int rad = Config.maxPaddleRadius * 2 + 1;
-            int totalArea = rad * rad;
-            float averageTime = (((float)totalArea / (int)(Config.maxPaddleRadius / 16.25f * 20)) / 50f);
-            amount = (int)((Config.maxRainDownfall * rainLevel * averageTime)/125f);
-
+            amount = (int)(Config.maxRainDownfall * rainLevel * 0.946f);
         }
         else if (rainLevel > (float)Config.minRainLevelPuddle){
             amount = Math.clamp((int)(FlowingFluidsCompat.maxRainAmount * (rainLevel - (float)Config.minRainLevelPuddle)),0, Config.maxWaterAmount);

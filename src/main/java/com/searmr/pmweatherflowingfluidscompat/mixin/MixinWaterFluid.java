@@ -44,7 +44,6 @@ public abstract class MixinWaterFluid extends FlowingFluid {
     at = @At(value = "HEAD"), cancellable = true)
     private void fillBiomeDrainMixin(Level level, BlockPos blockPos, int amount, float chance, boolean isInfBiome, boolean isWithinInfBiomeHeights, boolean hasSkyLight, CallbackInfoReturnable<Boolean> cir) {
         WeatherHandlerServer handler = (WeatherHandlerServer) GameBusEvents.MANAGERS.get(level.dimension());
-//        int topY = level.getHeight(Heightmap.Types.WORLD_SURFACE,blockPos.getX(),blockPos.getZ());
         if (handler.getPrecipitation(blockPos.getCenter()) > 0f) cir.cancel();
     }
 
