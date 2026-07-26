@@ -11,6 +11,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -76,7 +77,7 @@ public class EventHandlerServer {
 
     public static void ChunkCheck(ServerLevel level, Vec3 pos) {
         BlockPos startPos = new BlockPos((int) (pos.x - pos.x % 16), (int) pos.y, (int) (pos.z - pos.z % 16));
-        HashMap<Vec2, CoastData> thing = new HashMap<>();
+        HashMap<BlockPos, CoastData> thing = new HashMap<>();
         int infBiomeCount = 0;
         int surfaceBlockCount = 0;
         // we iterate through all the top blocks of the chunk here
@@ -92,13 +93,7 @@ public class EventHandlerServer {
                 // is the biome we are in an infbiome?
                 boolean isInfBiome = PmWeatherFlowingFluidsCompatServer.FLOWINGFLUIDSAPI.doesBiomeInfiniteWaterRefill(biome);
                 CoastData coastData = new CoastData(false,0);
-                if (isInfBiome) {
-                    // store depth information so we can use it later to save having to recalculate it
-                    int height = level.getHeight(Heightmap.Types.OCEAN_FLOOR,tempPos.getX(),tempPos.getZ());
-                    coastData.depth = level.getSeaLevel() - height;
-                    infBiomeCount++;
-                }
-                else {
+
                     BlockState state = level.getBlockState(tempPos);
                     // see if block in non infbiome is a solid block
                     if (!state.getFluidState().is(Fluids.WATER)) {
@@ -110,42 +105,33 @@ public class EventHandlerServer {
                     else {
                         // if it is water treat it as a infbiome block
                         int height = level.getHeight(Heightmap.Types.OCEAN_FLOOR,tempPos.getX(),tempPos.getZ());
-                        coastData.depth = level.getSeaLevel() - height;
+                        int depth = level.getSeaLevel() - height;
+                        if (depth > 2) {
+                            coastData.depth = depth;
+                            infBiomeCount++;
+                        }
                     }
-                }
+
                 // put key value pair in here
-                thing.put(new Vec2(tempPos.getX(),tempPos.getZ()),coastData);
+                thing.put(tempPos,coastData);
             }
         }
-
+        List<BlockPos> stormSurgeSpawnLocations = new ArrayList<>();
         if (infBiomeCount > 1 && surfaceBlockCount > 1) {
-            ArrayList<Integer> dirCount = new ArrayList<>();
+            // here we find the locations on where storm surges can spawn
             thing.forEach((k,v) -> {
                 if (v.land) {
-                    // this goes through and finds in what direction water is most detected
-                    BlockPos basePos = new BlockPos((int)k.x,v.depth,(int)k.y);
-                    FluidState stateN = level.getBlockState(basePos.north()).getFluidState();
-                    FluidState stateE = level.getBlockState(basePos.east()).getFluidState();
-                    FluidState stateS = level.getBlockState(basePos.south()).getFluidState();
-                    FluidState stateW = level.getBlockState(basePos.west()).getFluidState();
-                    if (stateN.is(Fluids.WATER)) dirCount.add(0);
-                    if (stateE.is(Fluids.WATER)) dirCount.add(1);
-                    if (stateS.is(Fluids.WATER)) dirCount.add(2);
-                    if (stateW.is(Fluids.WATER)) dirCount.add(3);
+                    // do depth check around land blocks and if water with a depth of x or higher is detected it is a storm surge spawn location
+                        if (thing.containsKey(k.north()) && thing.get(k.north()).depth >= 2) stormSurgeSpawnLocations.add(k.north());
+                        if (thing.containsKey(k.east()) && thing.get(k.east()).depth >= 2) stormSurgeSpawnLocations.add(k.east());
+                        if (thing.containsKey(k.south()) && thing.get(k.south()).depth >= 2) stormSurgeSpawnLocations.add(k.south());
+                        if (thing.containsKey(k.west()) && thing.get(k.west()).depth >= 2) stormSurgeSpawnLocations.add(k.west());
                 }
             });
-            HashMap<String,Integer> storedDirections = new HashMap<>();
-            // get the total count for each direction
-            storedDirections.put("north",Collections.frequency(dirCount,0));
-            storedDirections.put("east",Collections.frequency(dirCount,1));
-            storedDirections.put("south",Collections.frequency(dirCount,2));
-            storedDirections.put("west",Collections.frequency(dirCount,3));
-            // here we store the hashmap as a list so we can we sort it to easily grab the highest value
-            List<Map.Entry<String,Integer>> list = new ArrayList<>(storedDirections.entrySet());
-            list.sort(Map.Entry.comparingByValue());
-            // grab the most common direction
-            String direction = list.getLast().getKey();
-            // direction logic to go here to find where storm surge blocks should spawn
+
+            stormSurgeSpawnLocations.forEach((b) -> {
+                PmWeatherFlowingFluidsCompatServer.FLOWINGFLUIDSAPI.placeFluidAmountFromPos(level,b,Fluids.WATER,2,true, false);
+            });
         }
     }
 
