@@ -161,6 +161,13 @@ public class EventHandlerServer {
         }
     }
 
+    @SubscribeEvent
+    public static void chunkUnload(ChunkEvent.Unload chunkEvent) {
+        if (!chunkEvent.getLevel().isClientSide()) {
+            chunksStormSurge.remove(chunkEvent.getChunk().getPos());
+        }
+    }
+
     private static void addSurgeChunk(BlockPos blockPos) {
         ChunkPos chunkPos = new ChunkPos(blockPos);
         if (!chunksStormSurge.containsKey(chunkPos)) chunksStormSurge.put(chunkPos, new ArrayList<>());
