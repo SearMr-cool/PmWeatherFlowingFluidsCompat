@@ -41,13 +41,13 @@ public class StormSurgeManager {
             if (random.nextFloat() < 0.02) {
                 v.forEach((b) -> {
                  if (level.shouldTickBlocksAt(b)) {
-                     double wind = WindEngine.getWind(b,level).length();
+                     double wind = WindEngine.getWind(b,level).length() / 2.237;
                      double dragC = getDragCoefficient(wind);
                      double stormFactor = getStormFactor(wind,dragC);
                      double stormSurge = getStormSurge(stormFactor);
-                     int currentSurge = level.getHeight(Heightmap.Types.WORLD_SURFACE_WG,b.getX(),b.getZ()) - level.getSeaLevel();
+                     int currentSurge = level.getHeight(Heightmap.Types.WORLD_SURFACE,b.getX(),b.getZ()) - level.getSeaLevel();
                      if (currentSurge - 1 < stormSurge) {
-                         PmWeatherFlowingFluidsCompatServer.FLOWINGFLUIDSAPI.placeFluidAmountFromPos(level,b,Fluids.WATER,3,true,false);
+                         PmWeatherFlowingFluidsCompatServer.FLOWINGFLUIDSAPI.placeFluidAmountFromPos(level,b,Fluids.WATER,(int)(7f * stormSurge),true,false);
                      }
                  }
                  });
@@ -64,7 +64,7 @@ public class StormSurgeManager {
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
                 var tempPos = startPos.offset(x,0,z);
-                int heightT = level.getHeight(Heightmap.Types.WORLD_SURFACE,tempPos.getX(),tempPos.getZ()) - 1;
+                int heightT = level.getHeight(Heightmap.Types.OCEAN_FLOOR,tempPos.getX(),tempPos.getZ());
                 // set out init pos to be the surface block
                 tempPos = new BlockPos(tempPos.getX(), heightT, tempPos.getZ());
                 Holder<Biome> biome = level.getBiome(tempPos);
@@ -72,21 +72,21 @@ public class StormSurgeManager {
                 CoastData coastData = new CoastData(false,0);
                 BlockState state = level.getBlockState(tempPos);
                 // see if block in non infbiome is a solid block
-                if (!state.getFluidState().is(Fluids.WATER)) {
+                if (!state.getFluidState().is(Fluids.WATER) && heightT >= level.getSeaLevel()) {
                     // we store the height in the depth variable as it has no use otherwise
                     coastData.land = true;
-                    coastData.y = heightT;
+                    coastData.y = heightT - 1;
                     surfaceBlockCount++;
                 }
-                else {
+                else if (state.getFluidState().is(Fluids.WATER)) {
                     // if it is water treat it as a infbiome block
-                    int height = level.getHeight(Heightmap.Types.OCEAN_FLOOR,tempPos.getX(),tempPos.getZ());
-                    int depth =  1 +    (level.getSeaLevel() - height);
+                    int depth =  1 +    (level.getSeaLevel() - tempPos.getY());
                     if (depth >= 1) {
-                        coastData.y = height;
+                        coastData.y = tempPos.getY();
                         infBiomeCount++;
                     }
                 }
+                else continue;
                 // put key value pair in here
                 thing.put(new ChunkKey(tempPos.getX(),tempPos.getZ()),coastData);
             }
@@ -105,7 +105,6 @@ public class StormSurgeManager {
                            CoastData cData = thing.get(nextKey);
                            if (!cData.land) {
                                addSurgeChunk(new BlockPos((int)nextKey.x(),cData.y,(int)nextKey.y()));
-                               PmWeatherFlowingFluidsCompatServer.LOGGER.debug("Added chunk");
                            }
                        }
                    }));
