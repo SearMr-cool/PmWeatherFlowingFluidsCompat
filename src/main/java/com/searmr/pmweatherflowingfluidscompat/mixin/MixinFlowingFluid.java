@@ -25,10 +25,11 @@ public class MixinFlowingFluid {
     @Redirect(method = "@MixinSquared:Handler",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;setBlockAndUpdate(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Z"))
         private boolean rainCheck(Level instance, BlockPos pos, BlockState state) {
-        if (Config.waterDrainsRain && state.getFluidState().is(Fluids.WATER)) {
-            WeatherHandlerServer handler = (WeatherHandlerServer) GameBusEvents.MANAGERS.get(instance.dimension());
-            if (handler != null && handler.getPrecipitation(pos.getCenter()) > 0f) return false;
-        }
-        return instance.setBlockAndUpdate(pos,state);
+        return false;
+//        if (Config.waterDrainsRain && state.getFluidState().is(Fluids.WATER)) {
+//            WeatherHandlerServer handler = (WeatherHandlerServer) GameBusEvents.MANAGERS.get(instance.dimension());
+//            if (handler != null && handler.getPrecipitation(pos.getCenter()) > 0f) return false;
+//        }
+//        return instance.setBlockAndUpdate(pos,state);
     }
 }
