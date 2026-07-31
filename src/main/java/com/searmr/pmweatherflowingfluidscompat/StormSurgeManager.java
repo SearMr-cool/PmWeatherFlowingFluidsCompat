@@ -40,7 +40,7 @@ public class StormSurgeManager {
         Random random = new Random();
         chunksStormSurge.forEach((k,v) -> {
 
-            if (random.nextFloat() < 0.02 && level.hasChunk(k.x,k.z) && level.shouldTickBlocksAt(k.getWorldPosition())) {
+            if (random.nextFloat() < 0.02 && Utils.withinPlayerRadius(level,k.getWorldPosition(),level.getServer().getPlayerList().getSimulationDistance() * 16 - 32)) {
                 v.forEach((b) -> {
                         double wind = WindEngine.getWind(b,level).length() / 2.237;
                         PmWeatherFlowingFluidsCompatServer.LOGGER.debug("GO!");
@@ -50,7 +50,7 @@ public class StormSurgeManager {
                         double stormSurge = getStormSurge(stormFactor);
                         int currentSurge = level.getHeight(Heightmap.Types.WORLD_SURFACE,b.getX(),b.getZ()) - level.getSeaLevel();
                         if (currentSurge - 1 < stormSurge) {
-                            PmWeatherFlowingFluidsCompatServer.FLOWINGFLUIDSAPI.placeFluidAmountFromPos(level,b,Fluids.WATER,(int)(7f * stormSurge),true,false);
+                            PmWeatherFlowingFluidsCompatServer.FLOWINGFLUIDSAPI.placeFluidAmountFromPos(level,b,Fluids.WATER,(int)(9f * stormSurge),true,false);
                         }
 
                 });
