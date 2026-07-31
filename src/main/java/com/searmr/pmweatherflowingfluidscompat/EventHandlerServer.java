@@ -29,6 +29,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.level.ChunkEvent;
+import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import traben.flowing_fluids.FlowingFluids;
 import traben.flowing_fluids.api.FlowingFluidsAPI;
@@ -38,7 +39,7 @@ import java.util.*;
 import static dev.protomanly.pmweather.weather.ThermodynamicEngine.getPrecipitationType;
 
 
-@EventBusSubscriber(modid = PmWeatherFlowingFluidsCompatServer.MODID, bus=EventBusSubscriber.Bus.GAME)
+@EventBusSubscriber(modid = PmWeatherFlowingFluidsCompatServer.MODID)
 public class EventHandlerServer {
     private static boolean stormSurgeActive = false;
     @SubscribeEvent
@@ -119,6 +120,14 @@ public class EventHandlerServer {
             StormSurgeManager manager = StormSurgeManager.managers.get(level.dimension());
             manager.removeSurgeChunk(chunkEvent.getChunk().getPos());
         }
+    }
+
+    @SubscribeEvent
+    public static void serverUnload(LevelEvent.Unload event) {
+        Level level = (Level) event.getLevel();
+       if (!level.isClientSide) {
+           StormSurgeManager.managers.remove(level.dimension());
+       }
     }
 }
 

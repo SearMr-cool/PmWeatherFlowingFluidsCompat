@@ -40,7 +40,7 @@ public class StormSurgeManager {
         chunksStormSurge.forEach((k,v) -> {
             if (random.nextFloat() < 0.02) {
                 v.forEach((b) -> {
-                 if (level.shouldTickBlocksAt(b)) {
+                 if (level.hasChunk(k.x,k.z) && level.getNearestPlayer(b.getX(),b.getY(),b.getZ(),100,true) != null) {
                      double wind = WindEngine.getWind(b,level).length() / 2.237;
                      double dragC = getDragCoefficient(wind);
                      double stormFactor = getStormFactor(wind,dragC);
