@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.BiomeTags;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
@@ -38,19 +39,21 @@ public class StormSurgeManager {
     public void surgeChunks() {
         Random random = new Random();
         chunksStormSurge.forEach((k,v) -> {
-            if (random.nextFloat() < 0.02) {
+
+            if (random.nextFloat() < 0.02 && level.hasChunk(k.x,k.z) && level.shouldTickBlocksAt(k.getWorldPosition())) {
                 v.forEach((b) -> {
-                 if (level.hasChunk(k.x,k.z) && level.getNearestPlayer(b.getX(),b.getY(),b.getZ(),100,true) != null) {
-                     double wind = WindEngine.getWind(b,level).length() / 2.237;
-                     double dragC = getDragCoefficient(wind);
-                     double stormFactor = getStormFactor(wind,dragC);
-                     double stormSurge = getStormSurge(stormFactor);
-                     int currentSurge = level.getHeight(Heightmap.Types.WORLD_SURFACE,b.getX(),b.getZ()) - level.getSeaLevel();
-                     if (currentSurge - 1 < stormSurge) {
-                         PmWeatherFlowingFluidsCompatServer.FLOWINGFLUIDSAPI.placeFluidAmountFromPos(level,b,Fluids.WATER,(int)(7f * stormSurge),true,false);
-                     }
-                 }
-                 });
+                        double wind = WindEngine.getWind(b,level).length() / 2.237;
+                        PmWeatherFlowingFluidsCompatServer.LOGGER.debug("GO!");
+
+                        double dragC = getDragCoefficient(wind);
+                        double stormFactor = getStormFactor(wind,dragC);
+                        double stormSurge = getStormSurge(stormFactor);
+                        int currentSurge = level.getHeight(Heightmap.Types.WORLD_SURFACE,b.getX(),b.getZ()) - level.getSeaLevel();
+                        if (currentSurge - 1 < stormSurge) {
+                            PmWeatherFlowingFluidsCompatServer.FLOWINGFLUIDSAPI.placeFluidAmountFromPos(level,b,Fluids.WATER,(int)(7f * stormSurge),true,false);
+                        }
+
+                });
             }
         });
     }
@@ -79,12 +82,12 @@ public class StormSurgeManager {
                     surfaceBlockCount++;
                 }
                 else if (state.getFluidState().is(Fluids.WATER)) {
+                    coastData.y = heightT;
                     // if it is water treat it as a infbiome block
                     int depth =  1 +    (level.getSeaLevel() - tempPos.getY());
-                    if (depth >= 1) {
-                        coastData.y = tempPos.getY();
-                        infBiomeCount++;
-                    }
+
+                    if (depth >= 3 || biome.is(BiomeTags.IS_OCEAN) ) infBiomeCount++;
+
                 }
                 else continue;
                 // put key value pair in here
@@ -98,16 +101,17 @@ public class StormSurgeManager {
                     BlockPos blockPos = new BlockPos((int)k.x(),v.y,(int)k.y());
                     // do depth check around land blocks and if water with a depth of x or higher is detected it is a storm surge spawn location
                     int[][] offsets = {{0,-1},{1,0},{0,1},{-1,0}};
-                   Arrays.stream(offsets).forEach((v2 -> {
+                    Arrays.stream(offsets).forEach((v2 -> {
 
-                       ChunkKey nextKey = new ChunkKey(k.x() + v2[0], k.y() + v2[1]);
-                       if (thing.containsKey(nextKey)) {
-                           CoastData cData = thing.get(nextKey);
-                           if (!cData.land) {
-                               addSurgeChunk(new BlockPos((int)nextKey.x(),cData.y,(int)nextKey.y()));
-                           }
-                       }
-                   }));
+                        ChunkKey nextKey = new ChunkKey(k.x() + v2[0], k.y() + v2[1]);
+                        if (thing.containsKey(nextKey)) {
+                            CoastData cData = thing.get(nextKey);
+                            if (!cData.land) {
+                                addSurgeChunk(new BlockPos((int)nextKey.x(),cData.y,(int)nextKey.y()));
+                                PmWeatherFlowingFluidsCompatServer.LOGGER.debug("Added chunk");
+                            }
+                        }
+                    }));
                 }
             });
         }
