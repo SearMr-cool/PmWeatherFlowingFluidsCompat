@@ -11,6 +11,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
@@ -43,7 +44,6 @@ import static dev.protomanly.pmweather.weather.ThermodynamicEngine.getPrecipitat
 
 @EventBusSubscriber(modid = PmWeatherFlowingFluidsCompatServer.MODID)
 public class EventHandlerServer {
-    private static boolean stormSurgeActive = false;
     @SubscribeEvent
     public static void ServerTick(ServerTickEvent.Post event ) {
         List<ServerPlayer> players =  event.getServer().getPlayerList().getPlayers();
@@ -75,7 +75,7 @@ public class EventHandlerServer {
                     int amount = getAmountToPlace(rainLevel);
                     if (Config.isAdaptive) rainingSomewhere = true;
                     BlockState blockState = level.getBlockState(topBlock.below());
-                    if (!blockState.getFluidState().is(Fluids.WATER) && amount > 1) {
+                    if (!blockState.getFluidState().is(FluidTags.WATER) && amount > 1) {
                         PmWeatherFlowingFluidsCompatServer.FLOWINGFLUIDSAPI.modifyFluidAmountAtPos(level, topBlock, Fluids.WATER, 1);
                     }
                 }

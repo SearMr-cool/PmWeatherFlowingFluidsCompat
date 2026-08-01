@@ -3,6 +3,7 @@ package com.searmr.pmweatherflowingfluidscompat.mixin;
 
 import com.bawnorton.mixinsquared.TargetHandler;
 import com.searmr.pmweatherflowingfluidscompat.Config;
+import com.searmr.pmweatherflowingfluidscompat.StormSurgeManager;
 import com.searmr.pmweatherflowingfluidscompat.Utils;
 import dev.protomanly.pmweather.event.GameBusEvents;
 import dev.protomanly.pmweather.weather.WeatherHandlerServer;
@@ -17,6 +18,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
+import java.util.Set;
+
 @Mixin(value = FlowingFluid.class, priority = 1500)
 public class MixinFlowingFluid {
     @TargetHandler(
@@ -28,7 +31,11 @@ public class MixinFlowingFluid {
         private boolean rainCheck(Level instance, BlockPos pos, BlockState state) {
         if (!Config.waterDrainsRain) {
             WeatherHandlerServer handler = (WeatherHandlerServer) GameBusEvents.MANAGERS.get(instance.dimension());
-            if (handler != null && handler.getPrecipitation(pos.getCenter()) > 0f) return false;
+            if (handler != null) {
+                if (handler.getPrecipitation(pos.getCenter()) > 0f) {
+                    return false;
+                }
+            }
         }
         return instance.setBlockAndUpdate(pos,state);
     }
