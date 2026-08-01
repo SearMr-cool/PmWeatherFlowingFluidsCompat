@@ -1,6 +1,7 @@
 package com.searmr.pmweatherflowingfluidscompat;
 
 
+import dev.protomanly.pmweather.PMWeather;
 import dev.protomanly.pmweather.event.GameBusEvents;
 import dev.protomanly.pmweather.weather.ThermodynamicEngine;
 import dev.protomanly.pmweather.weather.WeatherHandler;
@@ -34,6 +35,7 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import traben.flowing_fluids.FlowingFluids;
 import traben.flowing_fluids.api.FlowingFluidsAPI;
 
+import javax.swing.*;
 import java.util.*;
 
 import static dev.protomanly.pmweather.weather.ThermodynamicEngine.getPrecipitationType;
@@ -45,16 +47,22 @@ public class EventHandlerServer {
     @SubscribeEvent
     public static void ServerTick(ServerTickEvent.Post event ) {
         List<ServerPlayer> players =  event.getServer().getPlayerList().getPlayers();
+        var managers = GameBusEvents.MANAGERS;
         boolean rainingSomewhere = false;
+        if (Config.stormSurgeActive) {
+            managers.forEach( (l,h) -> {
+                StormSurgeManager.createManager((ServerLevel) event.getServer().getLevel(l));
+                StormSurgeManager manager = StormSurgeManager.managers.get(l);
+                manager.surgeChunks();
+            });
+        }
+        else {
+            if (!StormSurgeManager.managers.isEmpty()) StormSurgeManager.managers.clear();
+        }
         for (ServerPlayer player : players) {
-            var managers = GameBusEvents.MANAGERS;
+
             WeatherHandler handle = (WeatherHandler) managers.get(player.level().dimension());
             Level level = player.level();
-         if (stormSurgeActive) {
-             StormSurgeManager.createManager((ServerLevel) level);
-             StormSurgeManager manager = StormSurgeManager.managers.get(level.dimension());
-             manager.surgeChunks();
-         }
             for (int i = 0; i <= 2; i++) {
                 int randX = (int)(-Config.maxPaddleRadius + (Math.random() * Config.maxPaddleRadius * 2) );
                 int randZ = (int)(-Config.maxPaddleRadius + (Math.random() * Config.maxPaddleRadius * 2) );
@@ -72,14 +80,9 @@ public class EventHandlerServer {
                     }
                 }
             }
-            Vec3 playerPos = player.position();
-
         }
         FlowingFluidsCompat.OnTick(rainingSomewhere);
-
-
     }
-
     public static int getAmountToPlace(float rainLevel) {
         int amount = 0;
         if (Config.realisticDownfall) {
@@ -91,31 +94,26 @@ public class EventHandlerServer {
         return amount;
     }
 
-
-    @SubscribeEvent
-    public static void registerCommands(RegisterCommandsEvent event) {
-        event.getDispatcher().register(Commands.literal("ff_compat").executes(context -> {
-            stormSurgeActive = !stormSurgeActive;
-            context.getSource().sendSuccess(() -> Component.literal("Flowing fluids storm surge test"),false);
-            return  1;
-        }));
-    }
     @SubscribeEvent
     public static void chunkLoad(ChunkEvent.Load chunkEvent) {
-        Level level = (Level) chunkEvent.getLevel();
-        if (!level.isClientSide()) {
-            StormSurgeManager.createManager((ServerLevel) level);
-           StormSurgeManager manager = StormSurgeManager.managers.get(level.dimension());
-           manager.processChunk(chunkEvent.getChunk().getPos().getWorldPosition().getCenter());
-        }
+       if (Config.stormSurgeActive) {
+           Level level = (Level) chunkEvent.getLevel();
+           if (!level.isClientSide()) {
+               StormSurgeManager.createManager((ServerLevel) level);
+               StormSurgeManager manager = StormSurgeManager.managers.get(level.dimension());
+               manager.processChunk(chunkEvent.getChunk().getPos().getWorldPosition().getCenter());
+           }
+       }
     }
 
     @SubscribeEvent
     public static void chunkUnload(ChunkEvent.Unload chunkEvent) {
-        Level level = (Level) chunkEvent.getLevel();
-        if (!chunkEvent.getLevel().isClientSide()) {
-            StormSurgeManager manager = StormSurgeManager.managers.get(level.dimension());
-            manager.removeSurgeChunk(chunkEvent.getChunk().getPos());
+        if (Config.stormSurgeActive) {
+            Level level = (Level) chunkEvent.getLevel();
+            if (!chunkEvent.getLevel().isClientSide()) {
+                StormSurgeManager manager = StormSurgeManager.managers.get(level.dimension());
+                manager.removeSurgeChunk(chunkEvent.getChunk().getPos());
+            }
         }
     }
 
@@ -127,5 +125,3 @@ public class EventHandlerServer {
        }
     }
 }
-
-

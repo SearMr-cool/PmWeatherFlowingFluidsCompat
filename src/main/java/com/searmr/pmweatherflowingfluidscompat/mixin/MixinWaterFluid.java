@@ -69,10 +69,15 @@ public abstract class MixinWaterFluid extends FlowingFluid {
         StormSurgeManager stormSurgeManager = StormSurgeManager.managers.get(level.dimension());
         if (stormSurgeManager != null) {
             ChunkPos chunkPos = new ChunkPos(blockPos);
-            if (stormSurgeManager.chunkRegistered(chunkPos)) cir.setReturnValue(false);
+
+            if (stormSurgeManager.chunkRegistered(chunkPos)) {
+                PmWeatherFlowingFluidsCompatServer.LOGGER.debug("FOUND");
+                cir.setReturnValue(false);
+                return;
+            }
         }
         float amount = EventHandlerServer.getAmountToPlace(handler.getPrecipitation(blockPos.getCenter()));
-        if (chance < Math.min(FlowingFluids.config.rainRefillChance, FlowingFluids.config.evaporationChanceV2 / 3)
+        if (!isInfBiome && chance < Math.min(FlowingFluids.config.rainRefillChance, FlowingFluids.config.evaporationChanceV2 / 3)
                 && amount > 0f
                 && level.canSeeSky(blockPos.above())
         ) {
@@ -81,6 +86,7 @@ public abstract class MixinWaterFluid extends FlowingFluid {
             if (result.first() != amount) {
                 result.second().run();
                 cir.setReturnValue(true);
+                return;
             }
         }
         cir.setReturnValue(false);

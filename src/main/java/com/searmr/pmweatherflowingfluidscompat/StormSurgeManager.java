@@ -23,7 +23,7 @@ public class StormSurgeManager {
     // yes I know this is similar to pmweathers handlers thingy, this was inspired from that
     public static Map<ResourceKey<Level>,StormSurgeManager> managers = new HashMap<>();
     private final ServerLevel level;
-    private final ConcurrentHashMap<ChunkPos, Set<BlockPos>> chunksStormSurge = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<ChunkKey, Set<BlockPos>> chunksStormSurge = new ConcurrentHashMap<>();
     public static void createManager(ServerLevel level) {
         if (!managers.containsKey(level.dimension())) managers.put(level.dimension(),new StormSurgeManager(level));
     }
@@ -32,19 +32,17 @@ public class StormSurgeManager {
         this.level = level;
     }
 
-    static double oldDepth = 13;
-    static double coastLine = 25000;
-    static double gravity = 9.81;
+    private static double oldDepth = 20;
+    private static double coastLine = 40 / 1.151 * 1852;
+    private static double gravity = 9.81;
 
     public void surgeChunks() {
         Random random = new Random();
         chunksStormSurge.forEach((k,v) -> {
-
-            if (random.nextFloat() < 0.02 && Utils.withinPlayerRadius(level,k.getWorldPosition(),level.getServer().getPlayerList().getSimulationDistance() * 16 - 32)) {
+            ChunkPos chunkPos = new ChunkPos(k.x(),k.y());
+            if (random.nextFloat() < 0.04 && Utils.withinPlayerRadius(level,chunkPos.getWorldPosition(),level.getServer().getPlayerList().getSimulationDistance() * 16 - 32)) {
                 v.forEach((b) -> {
-                        double wind = WindEngine.getWind(b,level).length() / 2.237;
-                        PmWeatherFlowingFluidsCompatServer.LOGGER.debug("GO!");
-
+                        double wind = WindEngine.getWind(b,level).length()  * 0.447;
                         double dragC = getDragCoefficient(wind);
                         double stormFactor = getStormFactor(wind,dragC);
                         double stormSurge = getStormSurge(stormFactor);
@@ -75,18 +73,18 @@ public class StormSurgeManager {
                 CoastData coastData = new CoastData(false,0);
                 BlockState state = level.getBlockState(tempPos);
                 // see if block in non infbiome is a solid block
-                if (!state.getFluidState().is(Fluids.WATER) && heightT >= level.getSeaLevel()) {
+                if (state.getFluidState().getAmount() < 8 && heightT >= level.getSeaLevel()) {
                     // we store the height in the depth variable as it has no use otherwise
                     coastData.land = true;
                     coastData.y = heightT - 1;
                     surfaceBlockCount++;
                 }
-                else if (state.getFluidState().is(Fluids.WATER)) {
+                else if (state.getFluidState().is(Fluids.WATER) && state.getFluidState().getAmount() >= 8) {
                     coastData.y = heightT;
                     // if it is water treat it as a infbiome block
                     int depth =  1 +    (level.getSeaLevel() - tempPos.getY());
 
-                    if (depth >= 3 || biome.is(BiomeTags.IS_OCEAN) ) infBiomeCount++;
+                    if (depth >= Config.minDepthSurge || biome.is(BiomeTags.IS_OCEAN) ) infBiomeCount++;
 
                 }
                 else continue;
@@ -119,8 +117,9 @@ public class StormSurgeManager {
 
     private void addSurgeChunk(BlockPos blockPos) {
         ChunkPos chunkPos = new ChunkPos(blockPos);
-        if (!chunksStormSurge.containsKey(chunkPos)) chunksStormSurge.put(chunkPos, ConcurrentHashMap.newKeySet());
-        chunksStormSurge.get(chunkPos).add(blockPos);
+        ChunkKey chunkKey = new ChunkKey(chunkPos.x,chunkPos.z);
+        if (!chunksStormSurge.containsKey(chunkKey)) chunksStormSurge.put(new ChunkKey(chunkPos.x,chunkPos.z), ConcurrentHashMap.newKeySet());
+        chunksStormSurge.get(chunkKey).add(blockPos);
     }
 
     public void removeSurgeChunk(ChunkPos chunkPos) {
@@ -144,6 +143,6 @@ public class StormSurgeManager {
     }
 
     public boolean chunkRegistered(ChunkPos chunkPos) {
-        return chunksStormSurge.containsKey(chunkPos);
+        return chunksStormSurge.containsKey(new ChunkKey(chunkPos.x,chunkPos.z));
     }
 }

@@ -36,6 +36,10 @@ public class Config {
     public static double minRainLevelPuddle;
     private static final ModConfigSpec.IntValue max_rain_downfall;
     public static int maxRainDownfall;
+    private static final ModConfigSpec.BooleanValue storm_surge_active;
+    public static boolean stormSurgeActive;
+    private static final ModConfigSpec.IntValue min_depth_surge;
+    public static int minDepthSurge;
     private static final ModConfigSpec.BooleanValue realistic_downfall;
     public static boolean realisticDownfall;
 
@@ -52,6 +56,8 @@ public class Config {
             maxPaddleRadius = (Integer) max_puddle_radius.get();
             minRainLevelPuddle = (Double) min_rain_level_puddle.get();
             maxRainDownfall = (Integer) max_rain_downfall.get();
+            stormSurgeActive = (Boolean) storm_surge_active.get();
+            minDepthSurge = (Integer) min_depth_surge.get();
             realisticDownfall = (boolean) realistic_downfall.get();
         }
     }
@@ -67,6 +73,8 @@ public class Config {
         max_puddle_radius = BUILDER.comment("How far away from the player puddles can form").defineInRange("maxpuddleradius",120,0,200);
         min_rain_level_puddle = BUILDER.comment("What is the minimum rain level puddles can form at").defineInRange("minlevelpuddle",0.1,0,1);
         max_rain_downfall = BUILDER.comment("When realistic downfall is enabled what should the peak mm/h be").defineInRange("maxraindownfall",200,0,400);
+        storm_surge_active = BUILDER.comment("Enable storm surge system (Experimental as of now (Recommended to restart your world if you toggle this").define("stormsurgeactive",false);
+        min_depth_surge = BUILDER.comment("How deep water needs to be for a storm surge to occur").defineInRange("mindepthsurge",3,1,10);
         realistic_downfall = BUILDER.comment("If enabled this attempts to make rain downfall 'realistic' by calculating amounts based off how long the minecraft day is (Overrides max water amount, adaptive settings and min rain level). Also this is highly laggy!").define("realisticdownfall",false);
         thing = BUILDER.build();
     }
