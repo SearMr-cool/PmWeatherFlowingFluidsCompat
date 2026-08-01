@@ -3,14 +3,13 @@ package com.searmr.pmweatherflowingfluidscompat.mixin;
 
 import com.bawnorton.mixinsquared.TargetHandler;
 import com.llamalad7.mixinextras.sugar.Local;
-import com.searmr.pmweatherflowingfluidscompat.Config;
-import com.searmr.pmweatherflowingfluidscompat.EventHandlerServer;
-import com.searmr.pmweatherflowingfluidscompat.PmWeatherFlowingFluidsCompatServer;
-import com.searmr.pmweatherflowingfluidscompat.Utils;
+import com.searmr.pmweatherflowingfluidscompat.*;
 import dev.protomanly.pmweather.event.GameBusEvents;
+import dev.protomanly.pmweather.weather.Storm;
 import dev.protomanly.pmweather.weather.WeatherHandlerServer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.BiomeTags;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -59,26 +58,37 @@ public abstract class MixinWaterFluid extends FlowingFluid {
         if (!Config.waterDrainsRain && handler.getPrecipitation(blockPos.getCenter()) > 0) cir.setReturnValue(false);
     }
 
-//    @TargetHandler(
-//            mixin = "traben.flowing_fluids.mixin.mixins.MixinWaterFluid",
-//            name = " ff$tryRainFill"
-//    )
-//    @Inject(method = "@MixinSquared:Handler",
-//            at = @At(value = "HEAD"), cancellable = true)
-//    private void tryRainFillMixin(Level level, BlockPos blockPos, float chance, boolean isInfBiome, boolean isWithinInfBiomeHeights, CallbackInfoReturnable<Boolean> cir) {
-//        WeatherHandlerServer handler = (WeatherHandlerServer) GameBusEvents.MANAGERS.get(level.dimension());
-//        float amount = EventHandlerServer.getAmountToPlace(handler.getPrecipitation(blockPos.getCenter()));
-//        if (chance < Math.min(FlowingFluids.config.rainRefillChance, FlowingFluids.config.evaporationChanceV2 / 3)
-//                && amount > 0f
-//                && level.canSeeSky(blockPos.above())
-//        ) {
-//            var result = FFFluidUtils.placeConnectedFluidAmountAndPlaceAction(
-//                    level, blockPos, (int)amount, this, 40, Config.rainFillsBlocks, false);
-//            if (result.first() != amount) {
-//                result.second().run();
-//                cir.setReturnValue(true);
-//            }
-//        }
-//        cir.setReturnValue(false);
-//    }
+    @TargetHandler(
+            mixin = "traben.flowing_fluids.mixin.mixins.MixinWaterFluid",
+            name = " ff$tryRainFill"
+    )
+    @Inject(method = "@MixinSquared:Handler",
+            at = @At(value = "HEAD"), cancellable = true)
+    private void tryRainFillMixin(Level level, BlockPos blockPos, float chance, boolean isInfBiome, boolean isWithinInfBiomeHeights, CallbackInfoReturnable<Boolean> cir) {
+        WeatherHandlerServer handler = (WeatherHandlerServer) GameBusEvents.MANAGERS.get(level.dimension());
+        StormSurgeManager stormSurgeManager = StormSurgeManager.managers.get(level.dimension());
+        if (stormSurgeManager != null) {
+            ChunkPos chunkPos = new ChunkPos(blockPos);
+
+            if (stormSurgeManager.chunkRegistered(chunkPos)) {
+                PmWeatherFlowingFluidsCompatServer.LOGGER.debug("FOUND");
+                cir.setReturnValue(false);
+                return;
+            }
+        }
+        float amount = EventHandlerServer.getAmountToPlace(handler.getPrecipitation(blockPos.getCenter()));
+        if (!isInfBiome && chance < Math.min(FlowingFluids.config.rainRefillChance, FlowingFluids.config.evaporationChanceV2 / 3)
+                && amount > 0f
+                && level.canSeeSky(blockPos.above())
+        ) {
+            var result = FFFluidUtils.placeConnectedFluidAmountAndPlaceAction(
+                    level, blockPos, (int)amount, this, 40, Config.rainFillsBlocks, false);
+            if (result.first() != amount) {
+                result.second().run();
+                cir.setReturnValue(true);
+                return;
+            }
+        }
+        cir.setReturnValue(false);
+    }
 }

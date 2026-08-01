@@ -9,5 +9,8 @@
   "pmweatherflowingfluidscompat.configuration.maxpuddleradius" : "Max Puddle Radius",
   "pmweatherflowingfluidscompat.configuration.minlevelpuddle" : "Minimum Rain Level for Puddle Formation",
   "pmweatherflowingfluidscompat.configuration.maxraindownfall" : "Max Realistic Rain Downfall",
-  "pmweatherflowingfluidscompat.configuration.realisticdownfall" : "Realistic Downfall"
+  "pmweatherflowingfluidscompat.configuration.stormsurgeactive" : "Enable Storm Surge System",
+  "pmweatherflowingfluidscompat.configuration.mindepthsurge" : "Min Storm Surge Depth",
+  "pmweatherflowingfluidscompat.configuration.realisticdownfall" : "Realistic Downfall",
+  "pmweatherflowingfluidscompat.configuration.stormsurgebiomecheck" : "Storm Surge Biome Check"
 }
