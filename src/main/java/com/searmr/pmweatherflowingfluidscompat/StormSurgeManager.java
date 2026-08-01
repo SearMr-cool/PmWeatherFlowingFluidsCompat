@@ -142,4 +142,8 @@ public class StormSurgeManager {
     public int getSurgeChunkAmount() {
         return chunksStormSurge.size();
     }
+
+    public boolean chunkRegistered(ChunkPos chunkPos) {
+        return chunksStormSurge.containsKey(chunkPos);
+    }
 }

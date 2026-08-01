@@ -47,34 +47,31 @@ public class EventHandlerServer {
         List<ServerPlayer> players =  event.getServer().getPlayerList().getPlayers();
         boolean rainingSomewhere = false;
         for (ServerPlayer player : players) {
-
             var managers = GameBusEvents.MANAGERS;
             WeatherHandler handle = (WeatherHandler) managers.get(player.level().dimension());
             Level level = player.level();
-
          if (stormSurgeActive) {
              StormSurgeManager.createManager((ServerLevel) level);
              StormSurgeManager manager = StormSurgeManager.managers.get(level.dimension());
              manager.surgeChunks();
-//             PmWeatherFlowingFluidsCompatServer.LOGGER.debug(Integer.toString(manager.getSurgeChunkAmount()));
          }
-//            for (int i = 0; i <= 2; i++) {
-//                int randX = (int)(-Config.maxPaddleRadius + (Math.random() * Config.maxPaddleRadius * 2) );
-//                int randZ = (int)(-Config.maxPaddleRadius + (Math.random() * Config.maxPaddleRadius * 2) );
-//                Vec3 pos = new Vec3(player.position().x + randX,200,player.position().z + randZ);
-//                int topMostBlock = player.level().getHeight(Heightmap.Types.WORLD_SURFACE,(int)pos.x,(int)pos.z);
-//                BlockPos topBlock = new BlockPos((int)pos.x,topMostBlock,(int)pos.z);
-//                float rainLevel = handle.getPrecipitation(topBlock.getCenter());
-//                boolean isRaining = rainLevel > 0 && getPrecipitationType(handle,topBlock.getCenter(),level, 0).equals(ThermodynamicEngine.Precipitation.RAIN);
-//                if (isRaining) {
-//                    int amount = getAmountToPlace(rainLevel);
-//                    if (Config.isAdaptive) rainingSomewhere = true;
-//                    BlockState blockState = level.getBlockState(topBlock.below());
-//                    if (!blockState.getFluidState().is(Fluids.WATER) && amount > 1) {
-//                        PmWeatherFlowingFluidsCompatServer.FLOWINGFLUIDSAPI.modifyFluidAmountAtPos(level, topBlock, Fluids.WATER, 1);
-//                    }
-//                }
-//            }
+            for (int i = 0; i <= 2; i++) {
+                int randX = (int)(-Config.maxPaddleRadius + (Math.random() * Config.maxPaddleRadius * 2) );
+                int randZ = (int)(-Config.maxPaddleRadius + (Math.random() * Config.maxPaddleRadius * 2) );
+                Vec3 pos = new Vec3(player.position().x + randX,200,player.position().z + randZ);
+                int topMostBlock = player.level().getHeight(Heightmap.Types.WORLD_SURFACE,(int)pos.x,(int)pos.z);
+                BlockPos topBlock = new BlockPos((int)pos.x,topMostBlock,(int)pos.z);
+                float rainLevel = handle.getPrecipitation(topBlock.getCenter());
+                boolean isRaining = rainLevel > 0 && getPrecipitationType(handle,topBlock.getCenter(),level, 0).equals(ThermodynamicEngine.Precipitation.RAIN);
+                if (isRaining) {
+                    int amount = getAmountToPlace(rainLevel);
+                    if (Config.isAdaptive) rainingSomewhere = true;
+                    BlockState blockState = level.getBlockState(topBlock.below());
+                    if (!blockState.getFluidState().is(Fluids.WATER) && amount > 1) {
+                        PmWeatherFlowingFluidsCompatServer.FLOWINGFLUIDSAPI.modifyFluidAmountAtPos(level, topBlock, Fluids.WATER, 1);
+                    }
+                }
+            }
             Vec3 playerPos = player.position();
 
         }
