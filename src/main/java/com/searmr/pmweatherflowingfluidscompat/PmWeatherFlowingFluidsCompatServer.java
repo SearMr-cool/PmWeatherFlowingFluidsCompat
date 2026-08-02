@@ -29,7 +29,7 @@ public class PmWeatherFlowingFluidsCompatServer {
     // The constructor for the mod class is the first code that is run when your mod is loaded.
     // FML will recognize some parameter types like IEventBus or ModContainer and pass them in automatically.
     public PmWeatherFlowingFluidsCompatServer(IEventBus modEventBus, ModContainer modContainer) {
-        AddonHelper.registerAddon(new AddonInfo(modContainer, List.of("0.16.4","0.17.0", "0.17.1","0.17.2")));
+        AddonHelper.registerAddon(new AddonInfo(modContainer, List.of("0.16","0.17")));
         modContainer.registerConfig(ModConfig.Type.SERVER, com.searmr.pmweatherflowingfluidscompat.Config.thing);
     }
 }
